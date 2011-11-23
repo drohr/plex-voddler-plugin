@@ -1,0 +1,32 @@
+[
+  {
+    "id":"username",
+    "type":"text",
+    "label":"E-mail",
+    "default":"",
+  },
+  
+  {
+    "id":"password",
+    "type":"text",
+    "option":"hidden",
+    "label":"Password",
+    "default":"",
+  },
+  
+  {
+	"id": "filter",
+	"type": "enum",
+	"label": "List Filter",
+	"values": ["free"],
+	"default": "All"
+  },
+  
+  {
+	"id": "sortorder",
+	"type": "enum",
+	"label": "Sort by",
+	"values": ["rating", "views", "alphabetical", "added"],
+	"default": "All"
+  }
+]

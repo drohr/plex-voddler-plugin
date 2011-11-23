@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site site="http://.*.voddler.com"
+    plugin="http://player.voddler.com/VoddlerPlayer.swf"
+    initialState="fetch-player"
+    identifier="com.plexapp.plugins.voddler"
+    version="1.0">
+    
+	<seekbar type="simple"> 
+		<start x="65" y="345" />
+		<end   x="550" y="345" />
+		<played>
+			<color rgb="2392bf" />
+		</played>
+	</seekbar>
+
+    <!-- Wait for frame to load -->
+    <state name="fetch-player">
+        <event>
+            <condition>
+                <!-- Wait for the DOM to load... -->
+                <frameLoaded />
+            </condition>
+            <action>
+                <!-- ...then goto the 'check-for-auth' state -->
+                <goto state="moviestart" />
+            </action>
+        </event>
+    </state>
+       
+    <condition name="need-to-click-start-movie">
+        <and>
+        	<color x="629" y="327" rgb="e6e6e6" />
+            <color x="629" y="356" rgb="e6e6e6" />
+            <color x="654" y="340" rgb="e6e6e6" />
+        </and>
+    </condition>
+
+    <condition name="need-to-click-resume">
+        <and>
+        	<color x="540" y="376" rgb="a4a19d" />
+            <color x="737" y="376" rgb="a4a19d" />
+        </and>
+    </condition>
+
+    <!-- MOVIESTART -->
+    <state name="moviestart">
+        <event>
+            <condition> 
+                <!-- When the movie is buffered, click start -->
+                <condition name="need-to-click-start-movie" />
+            </condition> 
+            <action> 
+                <click x="643" y="340" /> 
+                <goto state="playing" /> 
+            </action>
+        </event> 
+        <event>
+            <condition>
+                <!-- If the movie has a resume point, resume the movie -->
+                <condition name="need-to-click-resume" />
+            </condition>
+            <action>
+            	<click x="738" y="377" />
+            	<goto state="playing" />
+            </action>
+        </event>
+    </state>
+    
+    <!-- PLAYING -->
+    <state name="playing">
+        <event>
+            <condition>
+                <command name="pause" />
+            </condition>
+            <action>
+                <click x="643" y="339" />
+                <goto state="paused" />
+            </action>
+        </event>
+    </state>
+    
+    <!-- PAUSED -->
+    <state name="paused">
+        <event>
+            <condition>
+                <command name="play" />
+            </condition>
+            <action>
+                <click x="643" y="339" />
+                <goto state="playing" />
+            </action>
+        </event>
+    </state>
+   
+</site>
