@@ -3,7 +3,7 @@
 Orignal code from Thomas Rosenqvist <thomas@rosenqvist.org>
 Rewriten by David Röhr <david@rohr.se>
 
-Very exprimental state, some features are working, some are not.
+Very exprimental state, some features work, some dont't. Tested on MacOS and Windows with PMS 0.9.5.0.
 
 ## known issues
 
