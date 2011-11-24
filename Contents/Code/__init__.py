@@ -1,11 +1,13 @@
+# -*- encoding: utf-8
+#
+# Voddler Plex Plugin
+#
+
 import re
 
-VERSION="0.1"
+VERSION="0.2"
 VIDEO_PREFIX = "/video/voddler"
 NAME = L('Title')
-
-### GRAPHICS #######################################################################################
-
 ART    = 'art-default.jpg'
 ICON   = 'icon-default.png'
 
@@ -13,9 +15,9 @@ ICON   = 'icon-default.png'
 
 
 def ValidatePrefs():
-    u = Prefs.Get('username')
-    p = Prefs.Get('password')
-    f = Prefs.Get('filter')
+    u = Prefs['username']
+    p = Prefs['password']
+    f = Prefs['filter']
     if( u == None or p == None or f == None):
         return MessageContainer(
             "Error",
@@ -200,8 +202,8 @@ def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
             Function(
                 DirectoryItem(OpenTvShowsEpisodes,
                     "Season %d" % season["num"],
-                    subtitle= "", #Price: %s" % (movie["price"]),
-                    summary = "", #Episodes: %s\nProduction year: %s" % (movie["numEpisodes"], movie["productionYear"]),
+                    subtitle= "", 
+                    summary = "", #
                     thumb = R(ICON),
                     art=R(ART)
                 ), seasonNum = season["num"], seriesId=seriesId, browseType=browseType
@@ -245,10 +247,10 @@ def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
             Function(
                 DirectoryItem(OpenTvShowsSeasons,
                     title= movie["originalTitle"],
-                    subtitle= "", #Price: %s" % (movie["price"]),
+                    subtitle= "",
                     summary = "Episodes: %s\nProduction year: %s" % (movie["numEpisodes"], movie["productionYear"]),
                     thumb = movie["posterUrl"],
-                    duration ="", # movie["runtime"],
+                    duration ="", 
                     userRating=float(movie['videoRatingAverage']) / 5 * 10
                 ), seriesId = movie['id'], browseType=browseType
             )
@@ -274,17 +276,16 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
         MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + episode["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
         dir.Append(
             WebVideoItem(MOVIE_URL,
-                title= episode["originalTitle"],
+                #title= episode["originalTitle"],
+                title="%d. %s" % (episode["num"], episode["originalTitle"]),
                 subtitle= "", #Price: %s" % (movie["price"]),
                 summary = "", #Production year: %s\n\n%s" % (episode["productionYear"], removeHtmlTags(episode["localizedData"]["synopsis"])),
                 thumb = episode["posterUrl"],
-                duration ="", # episode["runtime"],
+                duration = episode["runtime"],
                 userRating=float(episode['videoRatingAverage']) / 5 * 10
             )
         )
     return dir
-
-
 
 def OpenMovieGenre(sender, genre, browseType):
     dir = MediaContainer(viewGroup="WallStream")
