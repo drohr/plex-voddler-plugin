@@ -44,6 +44,7 @@ def Start():
     Log('Voddler Plugin initialized')
 
 def ShowTypes():
+    Log('Showing Default Menu options')
     dir = MediaContainer(viewGroup="InfoList")
     # search
     dir.Append(
@@ -106,6 +107,7 @@ def ShowTypes():
     return dir
 
 def ListMovieGenres(sender, genreCategory, browseType):
+    Log('Listing Movie Genres')
     if ValidatePrefs() != None:
         return ValidatePrefs()
 
@@ -115,8 +117,6 @@ def ListMovieGenres(sender, genreCategory, browseType):
         if g['message'] != 'Welcome':
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
-
-    #typeFilter = Prefs['filter']
 
     dir = MediaContainer(viewGroup="InfoList")
     # add search to list
@@ -148,6 +148,7 @@ def ListMovieGenres(sender, genreCategory, browseType):
     return dir
 
 def ListTvShowGenres(sender, genreCategory, browseType):
+    Log('Listing Tv Shows Genres')
     if ValidatePrefs() != None:
         return ValidatePrefs()
 
@@ -188,6 +189,7 @@ def ListTvShowGenres(sender, genreCategory, browseType):
     return dir
 
 def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count):
+    Log('Listing Tv Show Seasons')
     dir = MediaContainer(viewGroup="InfoList")
     URL = "https://api.voddler.com/metaapi/seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
@@ -214,6 +216,7 @@ def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
     return dir
 
 def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
+    Log('Listing Movies in Genre')
     URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     j = JSON.ObjectFromURL(URL)
     i = 0
@@ -240,6 +243,7 @@ def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     return dir
 
 def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
+    Log('Listing Tv Shows in Genre')
     URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     j = JSON.ObjectFromURL(URL)
     i = 0
@@ -263,6 +267,7 @@ def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
     return dir
 
 def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, offset, count):
+    Log('Listing Tv Show Episodes')
     dir = MediaContainer(viewGroup="InfoList")
     URL = "https://api.voddler.com/metaapi/seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
@@ -289,6 +294,7 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
     return dir
 
 def OpenMovieGenre(sender, genre, browseType):
+    Log('Opening Movie Genres')
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListMoviesInGenre(dir, browseType, Prefs['filter'], Prefs['sortorder'], genre, 0, 200)
     if (len(dir) < 1):
@@ -299,6 +305,7 @@ def OpenMovieGenre(sender, genre, browseType):
     return dir
 
 def OpenTvShowsGenre(sender, genre, browseType):
+    Log('Opening Tv Show Genres')
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListTvShowsInGenre(dir, browseType, Prefs['filter'], Prefs['sortorder'], genre, 0, 200)
     if (len(dir) < 1):
@@ -308,6 +315,7 @@ def OpenTvShowsGenre(sender, genre, browseType):
         )
     return dir
 def OpenTvShowsSeasons(sender, seriesId, browseType):
+    Log('Opening Tv Show Seasons')
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListTvShowsSeasons(dir, browseType, Prefs['filter'], Prefs['sortorder'], seriesId, 0, 200)
     if (len(dir) < 1):
@@ -317,6 +325,7 @@ def OpenTvShowsSeasons(sender, seriesId, browseType):
         )
     return dir
 def OpenTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
+    Log('Opening Tv Show Episodes')
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListTvShowsEpisodes(dir, browseType, Prefs['filter'], Prefs['sortorder'], seasonNum, seriesId, 0, 200)
     if (len(dir) < 1):
@@ -327,6 +336,7 @@ def OpenTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     return dir
 
 def SearchResults(sender,query=None):
+    Log('Displaying Search Results')
     if ValidatePrefs() != None:
         return ValidatePrefs()
     dir = MediaContainer(viewGroup="InfoList")
