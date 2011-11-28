@@ -8,7 +8,7 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 
 ## known issues
 
-* Only AVOD movies and series are supported
+* Only AVOD movies and series are fully supported, listning rentals work.
 * You can't choose to resume a movie or not, if a resume point exists, then it will resume
 * Sometimes plex can start to transcode movies even though it doesn't need to.
 * Seekbar not working, should be fixed with javascript support
