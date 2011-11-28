@@ -63,8 +63,8 @@ def ShowTypes():
         Function(
             DirectoryItem(ListMovieGenres,
                 "Movies",
-                subtitle="Movies",
-                summary="",
+                subtitle="",
+                summary="Current releases, classic blockbusters and world cinema",
                 thumb=R('plex_icon_movies.png'),
                 art=R(ART)
             ), genreCategory = "movies", browseType = "movie"
@@ -75,8 +75,8 @@ def ShowTypes():
         Function(
             DirectoryItem(ListTvShowGenres,
                 "TV Shows",
-                subtitle="TV Shows",
-                summary="",
+                subtitle="",
+                summary="The best series from Hollywood, BBC and many others",
                 thumb=R('plex_icon_series.png'),
                 art=R(ART)
             ), genreCategory = "episodes", browseType = "series"
@@ -87,11 +87,47 @@ def ShowTypes():
          Function(
             DirectoryItem(ListMovieGenres,
                 "Documentaries",
-                subtitle="Documentaries",
-                summary="",
+                subtitle="",
+                summary="Learn about history, art, food, geography, science, nature, technology and more",
                 thumb=R('plex_icon_docus.png'),
                 art=R(ART)
             ), genreCategory = "documentary", browseType = "documentary"
+        )
+    )
+    # list favorites
+    dir.Append(
+         Function(
+            DirectoryItem(ListFavorites,
+                "Favorites",
+                subtitle="",
+                summary="List of all your favorite movies",
+                thumb=R('plex_icon_favorites.png'),
+                art=R(ART)
+            )
+        )
+    )
+    # list playlist
+    dir.Append(
+         Function(
+            DirectoryItem(ListPlaylist,
+                "Playlist",
+                subtitle="",
+                summary="List of all movies in your current playlist",
+                thumb=R('plex_icon_playlist.png'),
+                art=R(ART)
+            )
+        )
+    )
+    # list history
+    dir.Append(
+         Function(
+            DirectoryItem(ListHistory,
+                "History",
+                subtitle="",
+                summary="All the Voddler movies and episodes you have watched",
+                thumb=R('plex_icon_playlist.png'),
+                art=R(ART)
+            )
         )
     )
     # preference tab
@@ -106,11 +142,12 @@ def ShowTypes():
     )
     return dir
 
+# Returning a list of movie genres
 def ListMovieGenres(sender, genreCategory, browseType):
     Log('Listing Movie Genres')
+
     if ValidatePrefs() != None:
         return ValidatePrefs()
-
     if Prefs['username'] != None:
         URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
         g = JSON.ObjectFromURL(URL, cacheTime=300)
@@ -147,11 +184,12 @@ def ListMovieGenres(sender, genreCategory, browseType):
         )
     return dir
 
+# Returning a list of tv show genres
 def ListTvShowGenres(sender, genreCategory, browseType):
     Log('Listing Tv Shows Genres')
+    
     if ValidatePrefs() != None:
         return ValidatePrefs()
-
     if Prefs['username'] != None:
         URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
         g = JSON.ObjectFromURL(URL, cacheTime=300)
@@ -188,6 +226,104 @@ def ListTvShowGenres(sender, genreCategory, browseType):
         )
     return dir
 
+# Returning a list of favorites movies
+def ListFavorites(sender):
+    Log('Listing Favorites')
+    
+    if ValidatePrefs() != None:
+        return ValidatePrefs()
+    if Prefs['username'] != None:
+        URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        g = JSON.ObjectFromURL(URL, cacheTime=300)
+        if g['message'] != 'Welcome':
+            return MessageContainer("Failed to log in", "Username or password is incorrect")
+        Dict['sessionId'] = g['data']['session']
+
+    dir = MediaContainer(viewGroup="InfoList")
+    URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
+    g = JSON.ObjectFromURL(URL)
+    for p in g["data"]["playlists"]:
+        if p["type"] == "favorites":
+            for v in p["videos"]:
+                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + v["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+                dir.Append(
+                    WebVideoItem(MOVIE_URL,
+                        title= v["id"],
+                        subtitle= "", 
+                        summary = "",
+                        thumb = "", 
+                        duration = "", 
+                        userRating="", 
+                        art="" 
+                    )
+                )    
+    return dir
+
+# Returning a list of movies from your playlist
+def ListPlaylist(sender):
+    Log('Listing Playlist')
+    if ValidatePrefs() != None:
+        return ValidatePrefs()
+    if Prefs['username'] != None:
+        URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        g = JSON.ObjectFromURL(URL, cacheTime=300)
+        if g['message'] != 'Welcome':
+            return MessageContainer("Failed to log in", "Username or password is incorrect")
+        Dict['sessionId'] = g['data']['session']
+
+    dir = MediaContainer(viewGroup="InfoList")
+    URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
+    g = JSON.ObjectFromURL(URL)
+    for p in g["data"]["playlists"]:
+        if p["type"] == "playlist":
+            for v in p["videos"]:
+                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + v["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+                dir.Append(
+                    WebVideoItem(MOVIE_URL,
+                        title= v["id"],
+                        subtitle= "", 
+                        summary = "",
+                        thumb = "", 
+                        duration = "", 
+                        userRating="", 
+                        art="" 
+                    )
+                )    
+    return dir
+
+# Returning a list of all movies ever played
+def ListHistory(sender):
+    Log('Listing History')
+    if ValidatePrefs() != None:
+        return ValidatePrefs()
+    if Prefs['username'] != None:
+        URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        g = JSON.ObjectFromURL(URL, cacheTime=300)
+        if g['message'] != 'Welcome':
+            return MessageContainer("Failed to log in", "Username or password is incorrect")
+        Dict['sessionId'] = g['data']['session']
+
+    dir = MediaContainer(viewGroup="InfoList")
+    URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
+    g = JSON.ObjectFromURL(URL)
+    for p in g["data"]["playlists"]:
+        if p["type"] == "history":
+            for v in p["videos"]:
+                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + v["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+                dir.Append(
+                    WebVideoItem(MOVIE_URL,
+                        title= v["id"],
+                        subtitle= "", 
+                        summary = "",
+                        thumb = "", 
+                        duration = "", 
+                        userRating="", 
+                        art="" 
+                    )
+                )    
+    return dir
+
+# Returning a list of tv show seasons based on seriesId
 def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count):
     Log('Listing Tv Show Seasons')
     dir = MediaContainer(viewGroup="InfoList")
@@ -215,6 +351,7 @@ def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
         )
     return dir
 
+# Returning a list of movies based on genre
 def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     Log('Listing Movies in Genre')
     URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
@@ -242,6 +379,7 @@ def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
         dir = ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count)
     return dir
 
+# Returning a list of tv shows based on genre
 def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
     Log('Listing Tv Shows in Genre')
     URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
@@ -266,6 +404,7 @@ def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
         dir = ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count)    
     return dir
 
+# Returning a list of tv shows based on seriesId and seasonNum
 def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, offset, count):
     Log('Listing Tv Show Episodes')
     dir = MediaContainer(viewGroup="InfoList")
@@ -293,6 +432,7 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
         )
     return dir
 
+# Open a Movie genre
 def OpenMovieGenre(sender, genre, browseType):
     Log('Opening Movie Genres')
     dir = MediaContainer(viewGroup="WallStream")
@@ -304,6 +444,7 @@ def OpenMovieGenre(sender, genre, browseType):
         )
     return dir
 
+# Open a Tv Show genre
 def OpenTvShowsGenre(sender, genre, browseType):
     Log('Opening Tv Show Genres')
     dir = MediaContainer(viewGroup="WallStream")
@@ -314,6 +455,8 @@ def OpenTvShowsGenre(sender, genre, browseType):
             "Not available"
         )
     return dir
+
+# Open a list of Seasons for a Specific TvShow
 def OpenTvShowsSeasons(sender, seriesId, browseType):
     Log('Opening Tv Show Seasons')
     dir = MediaContainer(viewGroup="WallStream")
@@ -324,6 +467,8 @@ def OpenTvShowsSeasons(sender, seriesId, browseType):
             "Not available"
         )
     return dir
+
+# Open a Tv Show Season
 def OpenTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Log('Opening Tv Show Episodes')
     dir = MediaContainer(viewGroup="WallStream")
@@ -335,6 +480,7 @@ def OpenTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
         )
     return dir
 
+# Search
 def SearchResults(sender,query=None):
     Log('Displaying Search Results')
     if ValidatePrefs() != None:
@@ -363,6 +509,7 @@ def SearchResults(sender,query=None):
         )
     return dir
 
+# Remove HTML from synopis
 def removeHtmlTags(text):
     p = re.compile(r'<[^<]*?/?>')
     text = p.sub('', text)
