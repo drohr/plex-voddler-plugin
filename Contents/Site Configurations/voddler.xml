@@ -5,13 +5,13 @@
     identifier="com.plexapp.plugins.voddler"
     version="1.0">
     
-	<seekbar type="simple"> 
-		<start x="65" y="345" />
-		<end   x="550" y="345" />
-		<played>
-			<color rgb="2392bf" />
-		</played>
-	</seekbar>
+    <seekbar type="simple"> 
+        <start x="65" y="345" />
+        <end   x="550" y="345" />
+        <played>
+            <color rgb="2392bf" />
+        </played>
+    </seekbar>
 
     <!-- Wait for frame to load -->
     <state name="fetch-player">
@@ -21,7 +21,7 @@
                 <frameLoaded />
             </condition>
             <action>
-                <!-- ...then goto the 'check-for-auth' state -->
+                <!-- Start the movie -->
                 <goto state="moviestart" />
             </action>
         </event>
@@ -29,7 +29,7 @@
        
     <condition name="need-to-click-start-movie">
         <and>
-        	<color x="629" y="327" rgb="e6e6e6" />
+            <color x="629" y="327" rgb="e6e6e6" />
             <color x="629" y="356" rgb="e6e6e6" />
             <color x="654" y="340" rgb="e6e6e6" />
         </and>
@@ -37,7 +37,7 @@
 
     <condition name="need-to-click-resume">
         <and>
-        	<color x="540" y="376" rgb="a4a19d" />
+            <color x="540" y="376" rgb="a4a19d" />
             <color x="737" y="376" rgb="a4a19d" />
         </and>
     </condition>

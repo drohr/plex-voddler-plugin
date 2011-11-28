@@ -18,8 +18,8 @@
     "id": "filter",
     "type": "enum",
     "label": "List Filter",
-    "values": ["free"],
-    "default": "All"
+    "values": ["free", "premium", "all"],
+    "default": "free"
   },
   
   {
@@ -28,5 +28,13 @@
     "label": "Sort by",
     "values": ["rating", "views", "alphabetical", "added"],
     "default": "All"
+  },
+  
+  {
+    "id"     : "locale",
+    "type"	: "enum",
+    "label"	: "Language",
+    "values": ["English", "Svenska"],
+    "default": "English"
   }
 ]

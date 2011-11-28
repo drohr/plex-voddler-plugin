@@ -116,6 +116,8 @@ def ListMovieGenres(sender, genreCategory, browseType):
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
+    #typeFilter = Prefs['filter']
+
     dir = MediaContainer(viewGroup="InfoList")
     # add search to list
     dir.Append(
@@ -238,7 +240,7 @@ def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     return dir
 
 def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
-    URL = "https://api.voddler.com/metaapi/browse/1?type=" + browseType + "&category=" + Prefs['filter'] + "&sort=" + Prefs['sortorder'] + "&offset=0&count=200&genre=" + genre
+    URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     j = JSON.ObjectFromURL(URL)
     i = 0
     for movie in j["data"]["videos"]:
@@ -247,7 +249,7 @@ def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
             Function(
                 DirectoryItem(OpenTvShowsSeasons,
                     title= movie["originalTitle"],
-                    subtitle= "",
+                    subtitle="",
                     summary = "Episodes: %s\nProduction year: %s" % (movie["numEpisodes"], movie["productionYear"]),
                     thumb = movie["posterUrl"],
                     duration ="", 
@@ -276,9 +278,8 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
         MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + episode["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
         dir.Append(
             WebVideoItem(MOVIE_URL,
-                #title= episode["originalTitle"],
                 title="%d. %s" % (episode["num"], episode["originalTitle"]),
-                subtitle= "", #Price: %s" % (movie["price"]),
+                subtitle= "Price: %s" % (episode["price"]),
                 summary = "", #Production year: %s\n\n%s" % (episode["productionYear"], removeHtmlTags(episode["localizedData"]["synopsis"])),
                 thumb = episode["posterUrl"],
                 duration = episode["runtime"],
