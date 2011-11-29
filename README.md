@@ -18,6 +18,7 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 ## Known Issues
 
 * No playback on rental movies, listning work.
+* When changing a setting you could sometimes get an error msg.
 * You can't choose to resume a movie or not, if a resume point exists, then it will resume
 * Sometimes plex can start to transcode movies even though it doesn't need to.
 * Seekbar not working, should be fixed with javascript support

@@ -2,7 +2,7 @@
   {
     "id":"username",
     "type":"text",
-    "label":"E-mail",
+    "label":"prefs_Username",
     "default":"",
   },
   
@@ -10,7 +10,7 @@
     "id":"password",
     "type":"text",
     "option":"hidden",
-    "label":"Password",
+    "label":"prefs_Password",
     "default":"",
   },
   
@@ -25,11 +25,18 @@
   {
     "id": "sortorder",
     "type": "enum",
-    "label": "Sort by",
-    "values": ["rating", "views", "alphabetical", "added"],
-    "default": "All"
+    "label": "prefs_sortLabel",
+    "values": ["prefs_sortRating", "prefs_sortViews", "prefs_sortAlphabetical", "prefs_sortAdded"],
+    "default": "prefs_sortAlphabetical"
   },
-  
+
+  {
+    "id": "AdultFilter",
+    "type": "bool",
+    "label": "prefs_AdultFilter",
+    "default": "false"
+  }, 
+ 
   {
     "id"     : "locale",
     "type"	: "enum",

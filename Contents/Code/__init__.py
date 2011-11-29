@@ -24,6 +24,30 @@ def ValidatePrefs():
             "You need to provide a username and password to use this service"
         )
 
+def getFilterOptions():
+    if Prefs['filter'] == "prefs_catFree":
+       filter = "free" 
+    elif Prefs['filter'] == "prefs_catPremium":
+       filter = "premium"
+    elif Prefs['filter'] == "prefs_catAll":
+       filter = "all"
+    else:
+       filter = "free"
+    return filter
+
+def getSortOptions():
+    if Prefs['sortorder'] == "prefs_sortRating":
+       sortorder = "rating" 
+    elif Prefs['sortorder'] == "prefs_sortViews":
+       sortorder = "views"
+    elif Prefs['sortorder'] == "prefs_sortAlphabetical":
+       sortorder = "alphabetical"
+    elif Prefs['sortorder'] == "prefs_sortAdded":
+       sortorder = "added"
+    else:
+       sortorder = "All"
+    return sortorder 
+
 def Start():
     Plugin.AddPrefixHandler(VIDEO_PREFIX, ShowTypes, NAME, ICON, ART)
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
@@ -41,9 +65,9 @@ def Start():
     HTTP.CacheTime = CACHE_1HOUR
     Prefs.SetDialogTitle("Preferences for Voddler")
     #HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
-    Log('Voddler Plugin initialized')
- 
+
 def ShowTypes():
+    Log('Voddler Plugin initialized')
     Log('Showing Default Menu options')
     dir = MediaContainer(viewGroup="InfoList")
     # search
@@ -392,16 +416,16 @@ def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
         back = "";
         if len(movie["screenshots"]) > 0:
             back = movie["screenshots"][0]["url"]
-        MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + movie["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
         dir.Append(
-            WebVideoItem(MOVIE_URL,
-                title= movie["originalTitle"],
-                subtitle= "Price: %s" % (movie["price"]),
-                summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                thumb = movie["posterUrl"],
-                duration = movie["runtime"],
-                userRating=float(movie['videoRatingAverage']) / 5 * 10,
-                art=back
+            Function(
+                PopupDirectoryItem(ShowMoviePopup,
+                    movie["originalTitle"],
+                    subtitle= "Price: %s" % (movie["price"]),
+                    summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
+                    thumb = movie["posterUrl"],
+                    duration =  movie["runtime"],
+                    userRating=float(movie['videoRatingAverage']) / 5 * 10
+                ), videoId = movie['id'], trailerURL = movie['trailer']
             )
         )
     if (i == count):
@@ -477,15 +501,12 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
 # Open a Movie genre
 def OpenMovieGenre(sender, genre, browseType):
     Log('Opening Movie Genres')
-    if Prefs['filter'] == "prefs_catFree":
-       filter = "free" 
-    elif Prefs['filter'] == "prefs_catPremium":
-       filter = "premium"
-    elif Prefs['filter'] == "prefs_catAll":
-       filter = "all"
+    filter = getFilterOptions()
     Log('Filtering on %s' % filter)
+    sortorder = getSortOptions()
+    Log('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
-    dir = ListMoviesInGenre(dir, browseType, filter, Prefs['sortorder'], genre, 0, 200)
+    dir = ListMoviesInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
     if (len(dir) < 1):
         return MessageContainer(
             "Sorry",
@@ -496,15 +517,12 @@ def OpenMovieGenre(sender, genre, browseType):
 # Open a Tv Show genre
 def OpenTvShowsGenre(sender, genre, browseType):
     Log('Opening Tv Show Genres')
-    if Prefs['filter'] == "prefs_catFree":
-       filter = "free" 
-    elif Prefs['filter'] == "prefs_catPremium":
-       filter = "premium"
-    elif Prefs['filter'] == "prefs_catAll":
-       filter = "all"
+    filter = getFilterOptions()
     Log('Filtering on %s' % filter)
+    sortorder = getSortOptions()
+    Log('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
-    dir = ListTvShowsInGenre(dir, browseType, Prefs['filter'], Prefs['sortorder'], genre, 0, 200)
+    dir = ListTvShowsInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
     if (len(dir) < 1):
         return MessageContainer(
             "Sorry",
@@ -515,15 +533,12 @@ def OpenTvShowsGenre(sender, genre, browseType):
 # Open a list of Seasons for a Specific TvShow
 def OpenTvShowsSeasons(sender, seriesId, browseType):
     Log('Opening Tv Show Seasons')
-    if Prefs['filter'] == "prefs_catFree":
-       filter = "free" 
-    elif Prefs['filter'] == "prefs_catPremium":
-       filter = "premium"
-    elif Prefs['filter'] == "prefs_catAll":
-       filter = "all"
+    filter = getFilterOptions()   
     Log('Filtering on %s' % filter)
+    sortorder = getSortOptions()
+    Log('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
-    dir = ListTvShowsSeasons(dir, browseType, Prefs['filter'], Prefs['sortorder'], seriesId, 0, 200)
+    dir = ListTvShowsSeasons(dir, browseType, filter, sortorder, seriesId, 0, 200)
     if (len(dir) < 1):
         return MessageContainer(
             "Sorry",
@@ -534,15 +549,12 @@ def OpenTvShowsSeasons(sender, seriesId, browseType):
 # Open a Tv Show Season
 def OpenTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Log('Opening Tv Show Episodes')
-    if Prefs['filter'] == "prefs_catFree":
-       filter = "free" 
-    elif Prefs['filter'] == "prefs_catPremium":
-       filter = "premium"
-    elif Prefs['filter'] == "prefs_catAll":
-       filter = "all"
+    filter = getFilterOptions()
     Log('Filtering on %s' % filter)
+    sortorder = getSortOptions()
+    Log('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
-    dir = ListTvShowsEpisodes(dir, browseType, Prefs['filter'], Prefs['sortorder'], seasonNum, seriesId, 0, 200)
+    dir = ListTvShowsEpisodes(dir, browseType, filter, sortorder, seasonNum, seriesId, 0, 200)
     if (len(dir) < 1):
         return MessageContainer(
             "Sorry",
@@ -576,6 +588,39 @@ def SearchResults(sender,query=None):
         return MessageContainer(
             "Search results",
             "Did not find any result for '%s'" % query
+        )
+    return dir
+
+# Show Popup menu for a movie
+def ShowMoviePopup(sender, videoId, trailerURL):
+    Log('Showing popup menu for %s' % videoId)
+    dir = MediaContainer(viewGroup="InfoList")
+    URL = "https://api.voddler.com/metaapi/info/1?videoId=" + videoId
+    j = JSON.ObjectFromURL(URL)
+    movie=j['data']['videos']
+    MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + movie["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+    dir.Append(
+        WebVideoItem(MOVIE_URL,
+            title= "Play Movie",
+            subtitle="",
+            summary="",
+            thumb="",
+            duration= "",
+            userRating="",
+            art=""
+        )
+    )
+    if trailerURL != None:
+        dir.Append(
+            VideoItem(trailerURL,
+                title= "Play Trailer",
+                subtitle="",
+                summary="",
+                thumb="",
+                duration= "",
+                userRating="",
+                art=""
+            )
         )
     return dir
 
