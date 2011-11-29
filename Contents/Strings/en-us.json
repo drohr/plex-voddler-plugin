@@ -1,0 +1,19 @@
+{
+    "prefs_Username": "E-mail",
+    "prefs_Password": "Password",
+    "prefs_catLabel": "List Filter",
+    "prefs_catFree": "Play",
+    "prefs_catPremium": "Rental",
+    "prefs_catAll": "All",
+    "prefs_sortLabel": "Sort By",
+    "prefs_sortRating": "Rating",
+    "prefs_sortViews": "Views",
+    "prefs_sortAlphabetical": "Alphabetical",
+    "prefs_sortAdded": "Added",
+    "prefs_sortLocale": "Language",
+    "Title": "Voddler",
+    "MusicTitle": "Voddler Music",
+    "VideoTitle": "Voddler Video",
+    "PhotosTitle": "Voddler Photos",
+    "ApplicationsTitle": "Voddler Applications"
+}

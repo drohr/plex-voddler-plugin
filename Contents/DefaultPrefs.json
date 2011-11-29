@@ -17,9 +17,9 @@
   {
     "id": "filter",
     "type": "enum",
-    "label": "List Filter",
-    "values": ["free", "premium", "all"],
-    "default": "free"
+    "label": "prefs_catLabel",
+    "values": ["prefs_catFree", "prefs_catPremium", "prefs_catAll"],
+    "default": "prefs_catFree"
   },
   
   {

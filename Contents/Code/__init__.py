@@ -5,13 +5,13 @@
 
 import re
 
-VERSION="0.2"
+VERSION="2.2"
 VIDEO_PREFIX = "/video/voddler"
 NAME = L('Title')
 ART    = 'art-default.jpg'
 ICON   = 'icon-default.png'
 
-####################################################################################################
+#####################################################################################
 
 
 def ValidatePrefs():
@@ -42,7 +42,7 @@ def Start():
     Prefs.SetDialogTitle("Preferences for Voddler")
     #HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
     Log('Voddler Plugin initialized')
-
+ 
 def ShowTypes():
     Log('Showing Default Menu options')
     dir = MediaContainer(viewGroup="InfoList")
@@ -135,7 +135,7 @@ def ShowTypes():
         PrefsItem(
             title="Preferences",
             subtitle="Set up Voddler access details",
-            summary="Make sure the Voddler Tray app is running in the background.",
+            summary="Make sure the VoddlerNet service is enabled.",
             thumb=R('plex_icon_settings.png'),
             art=R(ART)
         )
@@ -171,6 +171,9 @@ def ListMovieGenres(sender, genreCategory, browseType):
     URL = "https://api.voddler.com/metaapi/genres/1?type=" + genreCategory
     g = JSON.ObjectFromURL(URL)
     for genre in g['data']:
+        # remove adult genre
+        if genre["value"] == "explicit":
+            continue
         dir.Append(
             Function(
                 DirectoryItem(OpenMovieGenre,
@@ -213,6 +216,9 @@ def ListTvShowGenres(sender, genreCategory, browseType):
     URL = "https://api.voddler.com/metaapi/genres/1?type=" + genreCategory
     g = JSON.ObjectFromURL(URL)
     for genre in g['data']:
+        # remove adult genre
+        if genre["value"] == "explicit":
+            continue
         dir.Append(
             Function(
                 DirectoryItem(OpenTvShowsGenre,
@@ -239,22 +245,31 @@ def ListFavorites(sender):
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="WallStream")
     URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
     g = JSON.ObjectFromURL(URL)
+    # get all playlists from user
     for p in g["data"]["playlists"]:
+        # get all videos for a specific playlist
         if p["type"] == "favorites":
             for v in p["videos"]:
-                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + v["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+                # get all information for specific video
+                URLinfo = "https://api.voddler.com/metaapi/info/1?videoId=" + v['id']
+                j = JSON.ObjectFromURL(URLinfo)
+                movie=j['data']['videos']
+                back = "";
+                if len(movie["screenshots"]) > 0:
+                    back = movie["screenshots"][0]["url"]
+                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + movie["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
                 dir.Append(
                     WebVideoItem(MOVIE_URL,
-                        title= v["id"],
-                        subtitle= "", 
-                        summary = "",
-                        thumb = "", 
-                        duration = "", 
-                        userRating="", 
-                        art="" 
+                        title= movie["originalTitle"],
+                        subtitle= "Price: %s" % (movie["price"]), 
+                        summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
+                        thumb = movie["posterUrl"], 
+                        duration = movie["runtime"], 
+                        userRating=float(movie['videoRatingAverage']) / 5 * 10, 
+                        art=back
                     )
                 )    
     return dir
@@ -271,29 +286,37 @@ def ListPlaylist(sender):
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="WallStream")
     URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
     g = JSON.ObjectFromURL(URL)
     for p in g["data"]["playlists"]:
         if p["type"] == "playlist":
             for v in p["videos"]:
-                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + v["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+                # get all information for specific video
+                URLinfo = "https://api.voddler.com/metaapi/info/1?videoId=" + v['id']
+                j = JSON.ObjectFromURL(URLinfo)
+                movie=j['data']['videos']
+                back = "";
+                if len(movie["screenshots"]) > 0:
+                    back = movie["screenshots"][0]["url"]
+                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + movie["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
                 dir.Append(
                     WebVideoItem(MOVIE_URL,
-                        title= v["id"],
-                        subtitle= "", 
-                        summary = "",
-                        thumb = "", 
-                        duration = "", 
-                        userRating="", 
-                        art="" 
+                        title= movie["originalTitle"],
+                        subtitle= "Price: %s" % (movie["price"]), 
+                        summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
+                        thumb = movie["posterUrl"], 
+                        duration = movie["runtime"], 
+                        userRating=float(movie['videoRatingAverage']) / 5 * 10, 
+                        art=back
                     )
-                )    
+                )     
     return dir
 
 # Returning a list of all movies ever played
 def ListHistory(sender):
     Log('Listing History')
+
     if ValidatePrefs() != None:
         return ValidatePrefs()
     if Prefs['username'] != None:
@@ -303,33 +326,40 @@ def ListHistory(sender):
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="WallStream")
     URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
     g = JSON.ObjectFromURL(URL)
     for p in g["data"]["playlists"]:
         if p["type"] == "history":
             for v in p["videos"]:
-                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + v["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+                # get all information for specific video
+                URLinfo = "https://api.voddler.com/metaapi/info/1?videoId=" + v['id']
+                j = JSON.ObjectFromURL(URLinfo)
+                movie=j['data']['videos']
+                back = "";
+                if len(movie["screenshots"]) > 0:
+                    back = movie["screenshots"][0]["url"]
+                MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + movie["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
                 dir.Append(
                     WebVideoItem(MOVIE_URL,
-                        title= v["id"],
-                        subtitle= "", 
-                        summary = "",
-                        thumb = "", 
-                        duration = "", 
-                        userRating="", 
-                        art="" 
+                        title= movie["originalTitle"],
+                        subtitle= "Price: %s" % (movie["price"]), 
+                        summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
+                        thumb = movie["posterUrl"], 
+                        duration = movie["runtime"], 
+                        userRating=float(movie['videoRatingAverage']) / 5 * 10, 
+                        art=back
                     )
-                )    
+                )      
     return dir
 
 # Returning a list of tv show seasons based on seriesId
 def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count):
     Log('Listing Tv Show Seasons')
+
     dir = MediaContainer(viewGroup="InfoList")
     URL = "https://api.voddler.com/metaapi/seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
-    i = 0
     seasons = {}
     for seasonNum, season in j["data"]["seasons"].items():
         seasonNum = int(seasonNum)
@@ -337,7 +367,6 @@ def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
         seasons[seasonNum] = season
     
     for season in seasons.values():
-        i = i + 1
         dir.Append(
             Function(
                 DirectoryItem(OpenTvShowsEpisodes,
@@ -354,6 +383,7 @@ def ListTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
 # Returning a list of movies based on genre
 def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     Log('Listing Movies in Genre')
+
     URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     j = JSON.ObjectFromURL(URL)
     i = 0
@@ -382,6 +412,7 @@ def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
 # Returning a list of tv shows based on genre
 def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
     Log('Listing Tv Shows in Genre')
+
     URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     j = JSON.ObjectFromURL(URL)
     i = 0
@@ -407,10 +438,10 @@ def ListTvShowsInGenre(dir, browseType, category, sort, genre, offset, count):
 # Returning a list of tv shows based on seriesId and seasonNum
 def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, offset, count):
     Log('Listing Tv Show Episodes')
+
     dir = MediaContainer(viewGroup="InfoList")
     URL = "https://api.voddler.com/metaapi/seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
-    i = 0
     episodes = {}
     for episodeNum, episode in j["data"]["seasons"][str(seasonNum)].items():
         episodeNum = int(episodeNum)
@@ -418,16 +449,27 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
         episodes[episodeNum] = episode
     
     for episode in episodes.values():
-        i = i + 1
-        MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + episode["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+        URLinfo = "https://api.voddler.com/metaapi/info/1?videoId=" +  episode["id"]
+        j = JSON.ObjectFromURL(URLinfo)
+        movie=j['data']['videos']
+        back = "";
+        if len(movie["screenshots"]) > 0:
+            back = movie["screenshots"][0]["url"]
+        MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + movie["id"] + "&session=" + Dict["sessionId"] + "&format=html&wmode=opaque"
+        # Set correct episode title
+        if episode["originalTitle"] == "" or episode["originalTitle"] == "null":
+            originalTitle = movie["originalTitle"]
+        else:
+            originalTitle = episode["originalTitle"]
         dir.Append(
             WebVideoItem(MOVIE_URL,
-                title="%d. %s" % (episode["num"], episode["originalTitle"]),
-                subtitle= "Price: %s" % (episode["price"]),
-                summary = "", #Production year: %s\n\n%s" % (episode["productionYear"], removeHtmlTags(episode["localizedData"]["synopsis"])),
-                thumb = episode["posterUrl"],
-                duration = episode["runtime"],
-                userRating=float(episode['videoRatingAverage']) / 5 * 10
+                title="%d. %s" % (episode["num"], originalTitle),
+                subtitle= "Price: %s" % (movie["price"]),
+                summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
+                thumb = "", 
+                duration = movie["runtime"],
+                userRating=float(movie['videoRatingAverage']) / 5 * 10,
+                art=back
             )
         )
     return dir
@@ -435,8 +477,15 @@ def ListTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
 # Open a Movie genre
 def OpenMovieGenre(sender, genre, browseType):
     Log('Opening Movie Genres')
+    if Prefs['filter'] == "prefs_catFree":
+       filter = "free" 
+    elif Prefs['filter'] == "prefs_catPremium":
+       filter = "premium"
+    elif Prefs['filter'] == "prefs_catAll":
+       filter = "all"
+    Log('Filtering on %s' % filter)
     dir = MediaContainer(viewGroup="WallStream")
-    dir = ListMoviesInGenre(dir, browseType, Prefs['filter'], Prefs['sortorder'], genre, 0, 200)
+    dir = ListMoviesInGenre(dir, browseType, filter, Prefs['sortorder'], genre, 0, 200)
     if (len(dir) < 1):
         return MessageContainer(
             "Sorry",
@@ -447,6 +496,13 @@ def OpenMovieGenre(sender, genre, browseType):
 # Open a Tv Show genre
 def OpenTvShowsGenre(sender, genre, browseType):
     Log('Opening Tv Show Genres')
+    if Prefs['filter'] == "prefs_catFree":
+       filter = "free" 
+    elif Prefs['filter'] == "prefs_catPremium":
+       filter = "premium"
+    elif Prefs['filter'] == "prefs_catAll":
+       filter = "all"
+    Log('Filtering on %s' % filter)
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListTvShowsInGenre(dir, browseType, Prefs['filter'], Prefs['sortorder'], genre, 0, 200)
     if (len(dir) < 1):
@@ -459,6 +515,13 @@ def OpenTvShowsGenre(sender, genre, browseType):
 # Open a list of Seasons for a Specific TvShow
 def OpenTvShowsSeasons(sender, seriesId, browseType):
     Log('Opening Tv Show Seasons')
+    if Prefs['filter'] == "prefs_catFree":
+       filter = "free" 
+    elif Prefs['filter'] == "prefs_catPremium":
+       filter = "premium"
+    elif Prefs['filter'] == "prefs_catAll":
+       filter = "all"
+    Log('Filtering on %s' % filter)
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListTvShowsSeasons(dir, browseType, Prefs['filter'], Prefs['sortorder'], seriesId, 0, 200)
     if (len(dir) < 1):
@@ -471,6 +534,13 @@ def OpenTvShowsSeasons(sender, seriesId, browseType):
 # Open a Tv Show Season
 def OpenTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Log('Opening Tv Show Episodes')
+    if Prefs['filter'] == "prefs_catFree":
+       filter = "free" 
+    elif Prefs['filter'] == "prefs_catPremium":
+       filter = "premium"
+    elif Prefs['filter'] == "prefs_catAll":
+       filter = "all"
+    Log('Filtering on %s' % filter)
     dir = MediaContainer(viewGroup="WallStream")
     dir = ListTvShowsEpisodes(dir, browseType, Prefs['filter'], Prefs['sortorder'], seasonNum, seriesId, 0, 200)
     if (len(dir) < 1):
@@ -509,7 +579,7 @@ def SearchResults(sender,query=None):
         )
     return dir
 
-# Remove HTML from synopis
+# Remove wierd tags from synopsis
 def removeHtmlTags(text):
     p = re.compile(r'<[^<]*?/?>')
     text = p.sub('', text)
