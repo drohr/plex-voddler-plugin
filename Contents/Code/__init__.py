@@ -5,7 +5,7 @@
 
 import re
 
-VERSION="2.2"
+VERSION="2.5"
 VIDEO_PREFIX = "/video/voddler"
 NAME = L('Title')
 ART    = 'art-default.jpg'

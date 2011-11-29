@@ -27,6 +27,8 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 
 ## ChangeLog
 
+* 2.5
+    * Added trailers
 * 2.2
     * Support added for browsing playlist, favorites and history
 * 2.0
