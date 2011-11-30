@@ -31,7 +31,7 @@
   },
 
   {
-    "id": "AdultFilter",
+    "id": "adultfilter",
     "type": "bool",
     "label": "prefs_AdultFilter",
     "default": "false"

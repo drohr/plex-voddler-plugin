@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site site="http://.*.voddler.com"
-    plugin="http://player.voddler.com/VoddlerPlayer.swf"
+    plugin="http://player.voddler.com/VoddlerPlayerLab.swf"
     initialState="fetch-player"
     identifier="com.plexapp.plugins.voddler"
     version="1.0">
