@@ -5,7 +5,7 @@
 
 import re
 
-VERSION="2.5"
+VERSION="2.6"
 VIDEO_PREFIX = "/video/voddler"
 NAME = L('Title')
 ART    = 'art-default.jpg'
@@ -494,7 +494,10 @@ def ListMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     """
 
     Log('Listing Movies in genre: %s' % genre)
-    URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
+    if Prefs['adultfilter'] == True:
+        URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s&explicit=1" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
+    else:
+        URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     j = JSON.ObjectFromURL(URL)
     i = 0
     for movie in j["data"]["videos"]:

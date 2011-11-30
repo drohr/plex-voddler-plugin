@@ -9,6 +9,7 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 ## Features
 
 * Playback on AVOD "Play" movies, documentaries and series
+* Playback of trailers
 * Browsing all types of movies, documentaries and series
 * Searching for content
 * Browsing Favorites, Playlist and History
@@ -27,8 +28,11 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 
 ## ChangeLog
 
+* 2.6
+    * Added documentation
+    * Added AdultFilter
 * 2.5
-    * Added trailers
+    * Added Trailers
 * 2.2
     * Support added for browsing playlist, favorites and history
 * 2.0
