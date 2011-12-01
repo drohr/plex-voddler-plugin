@@ -14,11 +14,12 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 * Searching for content
 * Browsing Favorites, Playlist and History
 * Sorting settings in preferences
-* Thumbnail and movie/episode information where available
+* Adult filter setting in preferences
+* Thumbnails and movie/episode information where available
 
 ## Known Issues
 
-* No playback on rental movies, listning work.
+* No playback on rental movies, only browsing.
 * When changing a setting you could sometimes get an error msg.
 * You can't choose to resume a movie or not, if a resume point exists, then it will resume
 * Sometimes plex can start to transcode movies even though it doesn't need to.
@@ -28,10 +29,10 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 
 ## ChangeLog
 
-* 2.6
+* 2.7
+    * Major code clean up
     * Added documentation
     * Added AdultFilter
-* 2.5
     * Added Trailers
 * 2.2
     * Support added for browsing playlist, favorites and history
