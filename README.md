@@ -26,21 +26,23 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 * Sometimes Plex tries to transcode movies even though it doesn't need to.
 * Seekbar not working, should be fixed with javascript support
 * Not listed in plex store
+* The search disregardes the adultfilter and doesn't allow adult content
 
 ## ChangeLog
 
-* 2.7
+* 1.3
     * Major code clean up
     * Added documentation
     * Added AdultFilter
     * Added Trailers
-* 2.2
+* 1.2
     * Support added for browsing playlist, favorites and history
-* 2.0
+* 1.1
     * Support added for series
 * 1.0
     * Added new look and feel
     * More rewrites
+    * Playback on AVOD movies
 * 0.5
     * Major code writes
     * Support for resume points

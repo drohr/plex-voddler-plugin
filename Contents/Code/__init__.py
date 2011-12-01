@@ -5,11 +5,15 @@
 
 import re
 
-VERSION="2.7"
+VERSION = "1.3"
 VIDEO_PREFIX = "/video/voddler"
-NAME = L('Title')
-ART    = 'art-default.jpg'
-ICON   = 'icon-default.png'
+NAME    = L('Title')
+ART     = 'art-default.jpg'
+ICON    = 'icon-default.png'
+
+API_META = 'https://api.voddler.com/metaapi/'
+API_USER = 'https://api.voddler.com/userapi/'
+
 
 #####################################################################################
 
@@ -34,8 +38,8 @@ def getFilterOptions():
     """
     Returning filter preferences.
 
-    @rtype:
-    @return:
+    @rtype: str
+    @return: Filter setting
     """
 
     if Prefs['filter'] == "prefs_catFree":
@@ -53,8 +57,8 @@ def getSortOptions():
     """
     Returning sorting preferences.
 
-    @rtype:
-    @return:
+    @rtype: str
+    @return: Sorting order
     """
 
     if Prefs['sortorder'] == "prefs_sortRating":
@@ -98,8 +102,8 @@ def ShowTypes():
     """
     Shows the start menu.
 
-    @rtype:
-    @return:
+    @rtype: str
+    @return: MediaContainer with options
     """
     
     Log('Showing Default Menu options')
@@ -203,32 +207,32 @@ def ShowTypes():
 
 def listMovieGenres(sender, genreCategory, browseType):
     """
-    Returning a list of movie genres.
+    Creates a MediaContainer with a list of Movie genres based on genreCategory
 
-    @type sender:
-    @param sender:
+    @type sender: 
+    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
-    @type genreCategory:
-    @param genreCategory:
+    @type genreCategory: str
+    @param genreCategory: Sub-category of video (movie, documentary or episodes)
 
-    @type browseType:
-    @param browseType:
+    @type browseType: str
+    @param browseType: Type of video (movie, documentary or series)
     
-    @rtype:
-    @return:
+    @rtype: str
+    @return: MediaContainer
     """
-
-    Log('Listing genres for: %s' % browseType)
 
     if ValidatePrefs() != None:
         return ValidatePrefs()
     if Prefs['username'] != None:
-        URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        #URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        URL = API_USER + "login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
         g = JSON.ObjectFromURL(URL, cacheTime=300)
         if g['message'] != 'Welcome':
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
+    Log('Listing genres for: %s' % genreCategory)
     dir = MediaContainer(viewGroup="InfoList")
     # add search to list
     dir.Append(
@@ -242,7 +246,7 @@ def listMovieGenres(sender, genreCategory, browseType):
             )
         )
     )
-    URL = "https://api.voddler.com/metaapi/genres/1?type=" + genreCategory
+    URL = API_META + "genres/1?type=" + genreCategory
     g = JSON.ObjectFromURL(URL)
     for genre in g['data']:
         # show adult genre or not
@@ -265,22 +269,22 @@ def listMovieGenres(sender, genreCategory, browseType):
 
 def listPlaylist(sender, playlistType):
     """
-    Returning a list of movies from your playlist: playlistType
+    Creates a MediaContainer with a list of Movies, Documentaries or TV Show Episodes based on playlistType
 
     @type sender:
-    @param sender:
+    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
     
-    @type playlistType:
-    @param playlistType: 
+    @type playlistType: str
+    @param playlistType: Type playlist you want to return
     
     @rtype dir:
-    @return dir:
+    @return dir: MediaContainer with options
     """
 
     if ValidatePrefs() != None:
         return ValidatePrefs()
     if Prefs['username'] != None:
-        URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        URL = API_USER + "login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
         g = JSON.ObjectFromURL(URL, cacheTime=300)
         if g['message'] != 'Welcome':
             return MessageContainer("Failed to log in", "Username or password is incorrect")
@@ -288,13 +292,13 @@ def listPlaylist(sender, playlistType):
 
     Log('Listing Playlist: %s' % playlistType)
     dir = MediaContainer(viewGroup="WallStream")
-    URL = "https://api.voddler.com/userapi/playlists/1?session=" + Dict['sessionId']
+    URL = API_USER + "playlists/1?session=" + Dict['sessionId']
     g = JSON.ObjectFromURL(URL)
     for p in g["data"]["playlists"]:
         if p["type"] == playlistType:
             for v in p["videos"]:
                 # get all information for specific video
-                URLinfo = "https://api.voddler.com/metaapi/info/1?videoId=" + v['id']
+                URLinfo = API_META + "info/1?videoId=" + v['id']
                 j = JSON.ObjectFromURL(URLinfo)
                 movie=j['data']['videos']
                 back = "";
@@ -318,7 +322,7 @@ def listPlaylist(sender, playlistType):
 
 def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     """
-    Returning a list of Movies or TV Shows based on genre
+    Creates a MediaContainer with a list of Movies or Documentaries based on genre 
 
     @type dir: str
     @param dir: returned MediaContainer from openMovieGenre()
@@ -347,9 +351,9 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
 
     Log('Listing genre: %s for: %s' % (genre, browseType))
     if Prefs['adultfilter'] == True:
-        URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s&explicit=1" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
+        URL = API_META + "browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s&explicit=1" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     else:
-        URL = "https://api.voddler.com/metaapi/browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
+        URL = API_META + "browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     if browseType == "movie" or browseType == "documentary":
         j = JSON.ObjectFromURL(URL)
         i = 0
@@ -362,11 +366,11 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                 Function(
                     PopupDirectoryItem(showMoviePopup,
                         movie["originalTitle"],
-                        subtitle= "Price: %s" % (movie["price"]),
+                        subtitle = "Price: %s" % (movie["price"]),
                         summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
                         thumb = movie["posterUrl"],
                         duration =  movie["runtime"],
-                        userRating=float(movie['videoRatingAverage']) / 5 * 10
+                        userRating = float(movie['videoRatingAverage']) / 5 * 10
                     ), videoId = movie['id'], trailerURL = movie['trailer']
                 )
             )
@@ -393,13 +397,12 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
         if (i == count):
             offset = offset + count
             dir = listMoviesGenre(dir, browseType, category, sort, genre, offset, count)  
-
     return dir
 
 
 def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count):
     """
-    Returning a list of TV Show seasons based on seriesId
+    Creates a MediaContainer with a list of TV Show seasons based on seriesId  
 
     @type dir:
     @param dir:
@@ -428,7 +431,7 @@ def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
 
     Log('Listing TV Show seasons for: %s' % seriesId)
     dir = MediaContainer(viewGroup="InfoList")
-    URL = "https://api.voddler.com/metaapi/seriesinfo/1?seriesId=" + seriesId
+    URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
     seasons = {}
     for seasonNum, season in j["data"]["seasons"].items():
@@ -453,7 +456,7 @@ def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
 
 def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, offset, count):
     """
-    Returning a list of TV Shows episodes based on seriesId and seasonNum
+    Creates a MediaContainer with a list of TV Show episodes based on seasonNum and seriesId
 
     @type dir:
     @param dir:
@@ -485,7 +488,7 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
 
     Log('Listing TV Show episodes for %s' % seriesId)
     dir = MediaContainer(viewGroup="InfoList")
-    URL = "https://api.voddler.com/metaapi/seriesinfo/1?seriesId=" + seriesId
+    URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
     episodes = {}
     for episodeNum, episode in j["data"]["seasons"][str(seasonNum)].items():
@@ -494,10 +497,10 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
         episodes[episodeNum] = episode
     
     for episode in episodes.values():
-        URLinfo = "https://api.voddler.com/metaapi/info/1?videoId=" +  episode["id"]
+        URLinfo = API_META + "info/1?videoId=" +  episode["id"]
         j = JSON.ObjectFromURL(URLinfo)
         movie=j['data']['videos']
-        # Set correct episode title
+        # If orginalTitle from seriesInfo is empty, use the orginalTitle from Info instead
         if episode["originalTitle"] == "" or episode["originalTitle"] == "null":
             originalTitle = movie["originalTitle"]
         else:
@@ -522,13 +525,13 @@ def openMovieGenre(sender, genre, browseType):
     Opens a Movie or TV Show genre.
 
     @type sender:
-    @param sender:
+    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
-    @type genre:
-    @param genre: 
+    @type genre: str
+    @param genre: Opens a specific genre
 
-    @type browseType:
-    @param browseType:
+    @type browseType: str
+    @param browseType: Opens a specific browseType
 
     @rtype:
     @return:
@@ -542,6 +545,7 @@ def openMovieGenre(sender, genre, browseType):
     dir = MediaContainer(viewGroup="WallStream")
     dir = listMoviesInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
     if (len(dir) < 1):
+        Log('Trying to access an empty genre')
         return MessageContainer(
             "Sorry",
             "Not available"
@@ -554,13 +558,13 @@ def openTvShowsSeasons(sender, seriesId, browseType):
     Opens a list of Seasons for a specific TV Show
 
     @type sender:
-    @param sender:
+    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
-    @type seriesId:
-    @param seriesId:
+    @type seriesId: int
+    @param seriesId: Opens a specific serie
 
-    @type browseType:
-    @param browseType:
+    @type browseType: str
+    @param browseType: Opens a specific browseType
 
     @rtype:
     @return:
@@ -586,7 +590,7 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Opens a TV Show Season.
 
     @type sender:
-    @param sender:
+    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type seasonNum:
     @param seasonNum:
@@ -618,10 +622,10 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
 
 def searchResults(sender,query=None):
     """
-    Displays output from a search.
+    Creates a MediaContainer with a list of Movies, Documentaries or TV Show episodes based on input from search. 
 
     @type sender:
-    @param sender:
+    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type: query:
     @param query: The specific search query
@@ -633,7 +637,7 @@ def searchResults(sender,query=None):
     if ValidatePrefs() != None:
         return ValidatePrefs()
     if Prefs['username'] != None:
-        URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
+        URL = API_USER + "login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
         g = JSON.ObjectFromURL(URL, cacheTime=300)
         if g['message'] != 'Welcome':
             return MessageContainer("Failed to log in", "Username or password is incorrect")
@@ -641,7 +645,7 @@ def searchResults(sender,query=None):
 
     dir = MediaContainer(viewGroup="InfoList")
     Log('Listing Search Results for: %s' % query)
-    URL = "https://api.voddler.com/metaapi/search/1?offset=0&count=20&q=" + String.Quote(query)
+    URL = API_META + "search/1?offset=0&count=20&q=" + String.Quote(query)
     j = JSON.ObjectFromURL(URL)
     i = 0
     for movie in j["data"]["videos"]:
@@ -743,11 +747,11 @@ def removeHtmlTags(text):
     """
     Removes wierd tags from synopsis text.
 
-    @type text:
+    @type text: str
     @param text: synopsis from videoId.
     
-    @rtype:
-    @return: 
+    @rtype: str
+    @return: Formated text 
     """
 
     p = re.compile(r'<[^<]*?/?>')
