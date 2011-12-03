@@ -1,22 +1,24 @@
-# voddler plex plugin 
+# Plex Plugin for the Voddler movie service 
 
 * Orignal code and idea by Thomas Rosenqvist <thomas@rosenqvist.org>
 * Rewriten and maintained by David Röhr <david@rohr.se>
 * Images by Sara Smedman <sara@joforik.net>
 
-Very exprimental state, some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
+Very beta state, some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ## Features
 
-* Playback on AVOD "Play" movies, documentaries and series
-* Playback of trailers
-* Browsing all types of movies, documentaries and series
-* Searching for content
-* Browsing Favorites, Playlist and History
-* Sorting settings in preferences
-* Adult filter setting in preferences
-* Thumbnails and movie/episode information where available
-* Plex Plugin installer package for MacOSX users for easy install
+* Playback
+    * Playback on AVOD "Play" movies, documentaries and series
+    * Playback of trailers
+* Browsing
+    * Browsing all types of movies, documentaries and series
+    * Searching for content
+    * Browsing Favorites, Playlist and History
+    * Thumbnails and movie/episode meta data where available
+* Preferences
+    * Sorting settings in preferences
+    * Adult filter setting in preferences
 
 ## Known Issues
 
