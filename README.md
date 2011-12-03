@@ -23,6 +23,7 @@ Very exprimental state, some features work, some dont't. Tested on MacOSX and Wi
 * No playback on rental movies, only browsing.
 * When changing a setting you could sometimes get an error msg.
 * You can't choose to resume a movie or not, if a resume point exists, then it will resume
+* Browsing for movies show movies for all platforms, not just web
 * Sometimes Plex tries to transcode movies even though it doesn't need to.
 * Seekbar not working, should be fixed with javascript support
 * Not listed in plex store

@@ -314,7 +314,7 @@ def listPlaylist(sender, playlistType):
                             duration =  movie["runtime"],
                             userRating=float(movie['videoRatingAverage']) / 5 * 10,
                             art=back
-                        ), videoId = movie['id'], trailerURL = movie['trailer']
+                        ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
                     )
                 )    
     return dir
@@ -371,7 +371,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                         thumb = movie["posterUrl"],
                         duration =  movie["runtime"],
                         userRating = float(movie['videoRatingAverage']) / 5 * 10
-                    ), videoId = movie['id'], trailerURL = movie['trailer']
+                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
                 )
             )
         if (i == count):
@@ -514,7 +514,7 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
                     thumb = "",
                     duration =  movie["runtime"],
                     userRating=float(movie['videoRatingAverage']) / 5 * 10
-                ), videoId = movie['id'], trailerURL = movie['trailer']
+                ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
             )
         )
     return dir
@@ -662,7 +662,7 @@ def searchResults(sender,query=None):
                     thumb = movie["posterUrl"],
                     duration =  movie["runtime"],
                     userRating=float(movie['videoRatingAverage']) / 5 * 10
-                ), videoId = movie['id'], trailerURL = movie['trailer']
+                ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
             )
         )
     if (i == 0):
@@ -673,7 +673,7 @@ def searchResults(sender,query=None):
     return dir
 
 
-def showMoviePopup(sender, videoId, trailerURL):
+def showMoviePopup(sender, videoId, trailerURL, price):
     """
     Show popup menu for a movie.
 
@@ -685,6 +685,9 @@ def showMoviePopup(sender, videoId, trailerURL):
 
     @type trailerURL:
     @param trailerURL: 
+
+    @type price:
+    @param price:
     
     @rtype:
     @return:
@@ -693,17 +696,30 @@ def showMoviePopup(sender, videoId, trailerURL):
     Log('Showing popup menu for: %s' % videoId)
     dir = MediaContainer(viewGroup="InfoList")
     MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&lab=1&wmode=opaque&plex=1"
-    dir.Append(
-        WebVideoItem(MOVIE_URL,
-            title= "Play Movie",
-            subtitle="",
-            summary="",
-            thumb="",
-            duration= "",
-            userRating="",
-            art=""
+    #if price != "Free":
+    #    dir.Append(
+    #        WebVideoItem(MOVIE_URL,
+    #            title= "Rent Movie",
+    #            subtitle="",
+    #            summary="",
+    #            thumb="",
+    #            duration= "",
+    #            userRating="",
+    #            art=""
+    #        )
+    #    )
+    if price == "Free":
+        dir.Append(
+            WebVideoItem(MOVIE_URL,
+                title= "Play Movie",
+                subtitle="",
+                summary="",
+                thumb="",
+                duration= "",
+                userRating="",
+                art=""
+            )
         )
-    )
     if trailerURL != None:
         dir.Append(
             VideoItem(trailerURL,
