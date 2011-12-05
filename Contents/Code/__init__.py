@@ -702,7 +702,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
 
     Log.Info('Showing popup menu for: %s' % videoId)
     dir = MediaContainer(viewGroup="InfoList")
-    MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&lab=1&wmode=opaque&plex=1"
+    MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
     if price == "Free":
         dir.Append(
             WebVideoItem(MOVIE_URL,
