@@ -1,7 +1,7 @@
 # Plex Plugin for the Voddler movie service 
 
-* Orignal code and idea by Thomas Rosenqvist <thomas@rosenqvist.org>
-* Rewriten and maintained by David Röhr <david@rohr.se>
+* Maintained and developed by David Röhr <david@rohr.se>
+* Orignal idea and code by Thomas Rosenqvist <thomas@rosenqvist.org>
 * Images by Sara Smedman <sara@joforik.net>
 
 Very beta state, some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
@@ -33,15 +33,17 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
 
 ## ChangeLog
 
+* 1.4
+    * Added add/remove from Favorites or Playlist
 * 1.3
     * Major code clean up
-    * Added documentation
+    * Added Documentation
     * Added AdultFilter
     * Added Trailers
 * 1.2
-    * Support added for browsing playlist, favorites and history
+    * Added Playlist, Favorites and History
 * 1.1
-    * Support added for series
+    * Added Series
 * 1.0
     * Added new look and feel
     * More rewrites
@@ -49,6 +51,7 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
 * 0.5
     * Major code writes
     * Support for resume points
-    * Initial support for series
+    * Initial support for Localisation
+    * Initial support for Movies & Series
 * 0.1
     * Initial release

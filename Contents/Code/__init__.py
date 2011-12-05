@@ -5,14 +5,18 @@
 
 import re
 
-VERSION = "1.3"
-VIDEO_PREFIX = "/video/voddler"
-NAME    = L('Title')
-ART     = 'art-default.jpg'
-ICON    = 'icon-default.png'
+VERSION        = "1.4"
+VIDEO_PREFIX   = "/video/voddler"
+NAME           = L('Title')
+ART            = 'art-default.jpg'
+ICON           = 'icon-default.png'
 
-API_META = 'https://api.voddler.com/metaapi/'
-API_USER = 'https://api.voddler.com/userapi/'
+API_META       = 'https://api.voddler.com/metaapi/'
+API_USER       = 'https://api.voddler.com/userapi/'
+
+NO_ITEMS       = MessageContainer('No Results','No Results')
+TRY_AGAIN      = MessageContainer('Error','An error has happened. Please try again later.')
+ERROR          = MessageContainer('Network Error','A Network error has occurred')
 
 
 #####################################################################################
@@ -95,7 +99,7 @@ def Start():
     HTTP.CacheTime = CACHE_1HOUR
     Prefs.SetDialogTitle("Preferences for Voddler")
     #HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
-    Log('Voddler Plugin initialized')
+    Log.Info('Voddler Plugin initialized')
 
 
 def ShowTypes():
@@ -106,7 +110,7 @@ def ShowTypes():
     @return: MediaContainer with options
     """
     
-    Log('Showing Default Menu options')
+    Log.Info('Showing Default Menu options')
     dir = MediaContainer(viewGroup="InfoList")
     # search
     dir.Append(
@@ -210,7 +214,7 @@ def listMovieGenres(sender, genreCategory, browseType):
     Creates a MediaContainer with a list of Movie genres based on genreCategory
 
     @type sender: 
-    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type genreCategory: str
     @param genreCategory: Sub-category of video (movie, documentary or episodes)
@@ -232,7 +236,7 @@ def listMovieGenres(sender, genreCategory, browseType):
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
-    Log('Listing genres for: %s' % genreCategory)
+    Log.Info('Listing genres for: %s' % genreCategory)
     dir = MediaContainer(viewGroup="InfoList")
     # add search to list
     dir.Append(
@@ -272,7 +276,7 @@ def listPlaylist(sender, playlistType):
     Creates a MediaContainer with a list of Movies, Documentaries or TV Show Episodes based on playlistType
 
     @type sender:
-    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
     
     @type playlistType: str
     @param playlistType: Type playlist you want to return
@@ -290,10 +294,10 @@ def listPlaylist(sender, playlistType):
             return MessageContainer("Failed to log in", "Username or password is incorrect")
         Dict['sessionId'] = g['data']['session']
 
-    Log('Listing Playlist: %s' % playlistType)
+    Log.Info('Listing Playlist: %s' % playlistType)
     dir = MediaContainer(viewGroup="WallStream")
     URL = API_USER + "playlists/1?session=" + Dict['sessionId']
-    g = JSON.ObjectFromURL(URL)
+    g = JSON.ObjectFromURL(URL, cacheTime=5)
     for p in g["data"]["playlists"]:
         if p["type"] == playlistType:
             for v in p["videos"]:
@@ -349,7 +353,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     @return:
     """
 
-    Log('Listing genre: %s for: %s' % (genre, browseType))
+    Log.Info('Listing genre: %s for: %s' % (genre, browseType))
     if Prefs['adultfilter'] == True:
         URL = API_META + "browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s&explicit=1" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     else:
@@ -429,7 +433,7 @@ def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
     @return:
     """
 
-    Log('Listing TV Show seasons for: %s' % seriesId)
+    Log.Info('Listing TV Show seasons for: %s' % seriesId)
     dir = MediaContainer(viewGroup="InfoList")
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
@@ -486,7 +490,7 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
     @return:
     """
 
-    Log('Listing TV Show episodes for %s' % seriesId)
+    Log.Info('Listing TV Show episodes for %s' % seriesId)
     dir = MediaContainer(viewGroup="InfoList")
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     j = JSON.ObjectFromURL(URL)
@@ -525,7 +529,7 @@ def openMovieGenre(sender, genre, browseType):
     Opens a Movie or TV Show genre.
 
     @type sender:
-    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type genre: str
     @param genre: Opens a specific genre
@@ -537,15 +541,15 @@ def openMovieGenre(sender, genre, browseType):
     @return:
     """
 
-    Log('Opening genre: %s for: %s' % (genre, browseType))
+    Log.Info('Opening genre: %s for: %s' % (genre, browseType))
     filter = getFilterOptions()
-    Log('Filtering on %s' % filter)
+    Log.Info('Filtering on %s' % filter)
     sortorder = getSortOptions()
-    Log('Sorting on %s' % sortorder)
+    Log.Info('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
     dir = listMoviesInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
     if (len(dir) < 1):
-        Log('Trying to access an empty genre')
+        Log.Warn('Trying to access an empty genre')
         return MessageContainer(
             "Sorry",
             "Not available"
@@ -558,7 +562,7 @@ def openTvShowsSeasons(sender, seriesId, browseType):
     Opens a list of Seasons for a specific TV Show
 
     @type sender:
-    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type seriesId: int
     @param seriesId: Opens a specific serie
@@ -570,14 +574,15 @@ def openTvShowsSeasons(sender, seriesId, browseType):
     @return:
     """
 
-    Log('Opening Tv Show Seasons')
+    Log.Info('Opening Tv Show Seasons')
     filter = getFilterOptions()   
-    Log('Filtering on %s' % filter)
+    Log.Info('Filtering on %s' % filter)
     sortorder = getSortOptions()
-    Log('Sorting on %s' % sortorder)
+    Log.Info('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
     dir = listTvShowsSeasons(dir, browseType, filter, sortorder, seriesId, 0, 200)
     if (len(dir) < 1):
+        Log.Warn('Trying to access an empty tv show')
         return MessageContainer(
             "Sorry",
             "Not available"
@@ -590,7 +595,7 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Opens a TV Show Season.
 
     @type sender:
-    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type seasonNum:
     @param seasonNum:
@@ -605,14 +610,15 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     @return:
     """
 
-    Log('Opening Tv Show Episodes')
+    Log.Info('Opening Tv Show Episodes')
     filter = getFilterOptions()
-    Log('Filtering on %s' % filter)
+    Log.Info('Filtering on %s' % filter)
     sortorder = getSortOptions()
-    Log('Sorting on %s' % sortorder)
+    Log.Info('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
     dir = listTvShowsEpisodes(dir, browseType, filter, sortorder, seasonNum, seriesId, 0, 200)
     if (len(dir) < 1):
+        Log.Warn('Trying to access an empty tv show season')
         return MessageContainer(
             "Sorry",
             "Not available"
@@ -625,7 +631,7 @@ def searchResults(sender,query=None):
     Creates a MediaContainer with a list of Movies, Documentaries or TV Show episodes based on input from search. 
 
     @type sender:
-    @param sender: contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type: query:
     @param query: The specific search query
@@ -644,7 +650,7 @@ def searchResults(sender,query=None):
         Dict['sessionId'] = g['data']['session']
 
     dir = MediaContainer(viewGroup="InfoList")
-    Log('Listing Search Results for: %s' % query)
+    Log.Info('Listing Search Results for: %s' % query)
     URL = API_META + "search/1?offset=0&count=20&q=" + String.Quote(query)
     j = JSON.ObjectFromURL(URL)
     i = 0
@@ -666,6 +672,7 @@ def searchResults(sender,query=None):
             )
         )
     if (i == 0):
+        Log.Info('Did not find any result for %s' % query)
         return MessageContainer(
             "Search results",
             "Did not find any result for '%s'" % query
@@ -675,10 +682,10 @@ def searchResults(sender,query=None):
 
 def showMoviePopup(sender, videoId, trailerURL, price):
     """
-    Show popup menu for a movie.
+    Creates a MediaContainer (popup menu) for a videoItem
 
     @type sender:
-    @param sender:
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
     @type videoId:
     @param videoId:
@@ -690,24 +697,12 @@ def showMoviePopup(sender, videoId, trailerURL, price):
     @param price:
     
     @rtype:
-    @return:
+    @return: 
     """
 
-    Log('Showing popup menu for: %s' % videoId)
+    Log.Info('Showing popup menu for: %s' % videoId)
     dir = MediaContainer(viewGroup="InfoList")
     MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&lab=1&wmode=opaque&plex=1"
-    #if price != "Free":
-    #    dir.Append(
-    #        WebVideoItem(MOVIE_URL,
-    #            title= "Rent Movie",
-    #            subtitle="",
-    #            summary="",
-    #            thumb="",
-    #            duration= "",
-    #            userRating="",
-    #            art=""
-    #        )
-    #    )
     if price == "Free":
         dir.Append(
             WebVideoItem(MOVIE_URL,
@@ -720,6 +715,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                 art=""
             )
         )
+    # add trailer
     if trailerURL != None:
         dir.Append(
             VideoItem(trailerURL,
@@ -732,31 +728,121 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                 art=""
             )
         )
-    # WIP
-    #dir.Append(
-    #    WebVideoItem(MOVIE_URL,
-    #        title= "Add to Favorites",
-    #        subtitle="",
-    #        summary="",
-    #        thumb="",
-    #        duration= "",
-    #        userRating="",
-    #        art=""
-    #    )
-    #)
-    #dir.Append(
-    #    WebVideoItem(MOVIE_URL,
-    #        title= "Add to Playlist",
-    #        subtitle="",
-    #        summary="",
-    #        thumb="",
-    #        duration= "",
-    #        userRating="",
-    #        art=""
-    #    )
-    #)
-    #
+    # add playlists
+    URL = API_USER + "playlists/1?session=" + Dict['sessionId']
+    g = JSON.ObjectFromURL(URL, cacheTime=5)
+    for p in g["data"]["playlists"]:
+        if p["type"] == "favorites":
+            playlistId = p['id']
+            videoExists = False
+            for v in p["videos"]:
+                if v['id'] == videoId:
+                    videoExists = True
+            if videoExists == True:
+                dir.Append(
+                    Function(
+                        DirectoryItem(modifyPlaylist,
+                            title="Remove from Favorites", 
+                            subtitle= "",
+                            summary = "",
+                            thumb = "",
+                            duration =  "",
+                            userRating= "",
+                        ), videoId = videoId, playlistId = playlistId, modify = "del" 
+                    )
+                )
+            elif videoExists == False:
+                dir.Append(
+                    Function(
+                        DirectoryItem(modifyPlaylist,
+                            title="Add to Favorites", 
+                            subtitle= "",
+                            summary = "",
+                            thumb = "",
+                            duration =  "",
+                            userRating= "",
+                        ), videoId = videoId, playlistId = playlistId, modify = "add" 
+                    )
+                )
+        if p["type"] == "playlist":
+            playlistId = p['id']
+            videoExists = False
+            for v in p["videos"]:
+                if v['id'] == videoId:
+                    videoExists = True
+            if videoExists == True:
+                dir.Append(
+                    Function(
+                        DirectoryItem(modifyPlaylist,
+                            title="Remove from Playlist", 
+                            subtitle= "",
+                            summary = "",
+                            thumb = "",
+                            duration =  "",
+                            userRating= "",
+                        ), videoId = videoId, playlistId = playlistId, modify = "del" 
+                    )
+                )
+            elif videoExists == False:
+                dir.Append(
+                    Function(
+                        DirectoryItem(modifyPlaylist,
+                            title="Add to Playlist", 
+                            subtitle= "",
+                            summary = "",
+                            thumb = "",
+                            duration =  "",
+                            userRating= "",
+                        ), videoId = videoId, playlistId = playlistId, modify = "add" 
+                    )
+                )
     return dir
+
+
+def modifyPlaylist(sender, videoId, playlistId, modify):
+    """
+    Adds or Removes a videoItem in a playlist
+
+    @type sender:
+    @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
+
+    @type videoId: 
+    @param videoId: 
+
+    @type playlistId:
+    @param playlistId:
+
+    @type modify:
+    @param modify:
+
+    @rtype:
+    @return: A MessageContainer with return status
+    """
+
+    URL = API_USER + "playlists/1?session=" + Dict['sessionId']
+    g = JSON.ObjectFromURL(URL, cacheTime=5)
+    if modify == "add":
+        URL = API_USER + "playlistadd/1?session=" + Dict['sessionId'] + "&playlist=" + playlistId + "&video=" + videoId
+        g = JSON.ObjectFromURL(URL, cacheTime=5)
+        if g['message'] != "Added" or g['success'] != True:
+            Log.Error('Error, Video was not added to your playlist')
+            mc = MessageContainer("Error", "Video was not added to your playlist")
+        else:
+            Log.Info('Video: %s was added to playlist: %s' % (videoId, playlistId))
+            mc = MessageContainer("Success", "Video added to playlist") 
+    elif modify == "del":
+        URL = API_USER + "playlistremove/1?session=" + Dict['sessionId'] + "&playlist=" + playlistId + "&video=" + videoId
+        g = JSON.ObjectFromURL(URL, cacheTime=5)
+        if g['message'] != "Removed" or g['success'] != True:
+            Log.Error('Error, Video was not removed from your playlist')
+            mc = MessageContainer("Error", "Video was not removed from your playlist")
+        else:
+            Log.Info('Video: %s was added to playlist: %s' % (videoId, playlistId))
+            mc = MessageContainer("Success", "Video was removed from your playlist") 
+    else:
+         Log.Error('Error, Unkown modify tag')
+         mc = MessageContainer("Error", "Unknown modify tag")
+    return mc 
 
 
 def removeHtmlTags(text):
