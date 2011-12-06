@@ -1,9 +1,10 @@
 # -*- encoding: utf-8
-#
-# Voddler Plex Plugin
-#
+""" Voddler Plex Plugin.
+"""
 
 import re
+
+############################################################################################
 
 VERSION        = "1.4"
 VIDEO_PREFIX   = "/video/voddler"
@@ -18,9 +19,7 @@ NO_ITEMS       = MessageContainer('No Results','No Results')
 TRY_AGAIN      = MessageContainer('Error','An error has happened. Please try again later.')
 ERROR          = MessageContainer('Network Error','A Network error has occurred')
 
-
-#####################################################################################
-
+############################################################################################
 
 def ValidatePrefs():
     """
@@ -30,8 +29,7 @@ def ValidatePrefs():
 
     u = Prefs['username']
     p = Prefs['password']
-    f = Prefs['filter']
-    if( u == None or p == None or f == None):
+    if( u == None or p == None ):
         return MessageContainer(
             "Error",
             "You need to provide a username and password to use this service"
@@ -41,6 +39,7 @@ def ValidatePrefs():
 def getFilterOptions():
     """
     Returning filter preferences.
+    If no value is set, return "free"
 
     @rtype: str
     @return: Filter setting
@@ -59,7 +58,8 @@ def getFilterOptions():
 
 def getSortOptions():
     """
-    Returning sorting preferences.
+    Returning sorting preferences
+    If no value is set, return "alphabetical"
 
     @rtype: str
     @return: Sorting order
@@ -206,6 +206,7 @@ def ShowTypes():
             art=R(ART)
         )
     )
+
     return dir
 
 
@@ -228,16 +229,22 @@ def listMovieGenres(sender, genreCategory, browseType):
 
     if ValidatePrefs() != None:
         return ValidatePrefs()
+
     if Prefs['username'] != None:
-        #URL = "https://api.voddler.com/userapi/login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
-        URL = API_USER + "login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
-        g = JSON.ObjectFromURL(URL, cacheTime=300)
-        if g['message'] != 'Welcome':
-            return MessageContainer("Failed to log in", "Username or password is incorrect")
-        Dict['sessionId'] = g['data']['session']
+        URL = API_USER + "login/1" 
+        try:
+            g = JSON.ObjectFromURL(URL, values={'username':  Prefs['username'], 'password': Prefs['password']}, cacheTime=300)
+        except Exception:
+            Log.Exception('Failed to log in')
+            return MessageContainer("Failed to log in", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            if g['message'] != 'Welcome':
+                return MessageContainer("Failed to log in", "Username or password is incorrect")
+            Dict['sessionId'] = g['data']['session']
 
     Log.Info('Listing genres for: %s' % genreCategory)
     dir = MediaContainer(viewGroup="InfoList")
+
     # add search to list
     dir.Append(
         Function(
@@ -250,10 +257,11 @@ def listMovieGenres(sender, genreCategory, browseType):
             )
         )
     )
+
     URL = API_META + "genres/1?type=" + genreCategory
     g = JSON.ObjectFromURL(URL)
     for genre in g['data']:
-        # show adult genre or not
+        # Verify AdultFilter
         if Prefs['adultfilter'] == False:
             if genre["value"] == "explicit":
                 continue
@@ -268,6 +276,7 @@ def listMovieGenres(sender, genreCategory, browseType):
                 ), genre = genre['value'], browseType=browseType
             )
         )
+
     return dir
 
 
@@ -281,18 +290,24 @@ def listPlaylist(sender, playlistType):
     @type playlistType: str
     @param playlistType: Type playlist you want to return
     
-    @rtype dir:
-    @return dir: MediaContainer with options
+    @rtype:
+    @return: MediaContainer with options
     """
 
     if ValidatePrefs() != None:
         return ValidatePrefs()
+
     if Prefs['username'] != None:
-        URL = API_USER + "login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
-        g = JSON.ObjectFromURL(URL, cacheTime=300)
-        if g['message'] != 'Welcome':
-            return MessageContainer("Failed to log in", "Username or password is incorrect")
-        Dict['sessionId'] = g['data']['session']
+        URL = API_USER + "login/1" 
+        try:
+            g = JSON.ObjectFromURL(URL, values={'username':  Prefs['username'], 'password': Prefs['password']}, cacheTime=300)
+        except Exception:
+            Log.Exception('Failed to log in')
+            return MessageContainer("Failed to log in", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            if g['message'] != 'Welcome':
+                return MessageContainer("Failed to log in", "Username or password is incorrect")
+            Dict['sessionId'] = g['data']['session']
 
     Log.Info('Listing Playlist: %s' % playlistType)
     dir = MediaContainer(viewGroup="WallStream")
@@ -320,7 +335,8 @@ def listPlaylist(sender, playlistType):
                             art=back
                         ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
                     )
-                )    
+                )
+    
     return dir
 
 
@@ -358,6 +374,19 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
         URL = API_META + "browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s&explicit=1" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
     else:
         URL = API_META + "browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
+    
+    try:
+        int(offset)
+    except ValueError:
+        Log.Exception('offset need to be an integer')
+        return "offset need to be an integer"
+
+    try:
+        int(count)
+    except ValueError:
+        Log.Exception('count need to be an integer')
+        return "count need to be an integer"
+
     if browseType == "movie" or browseType == "documentary":
         j = JSON.ObjectFromURL(URL)
         i = 0
@@ -378,9 +407,11 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                     ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
                 )
             )
+
         if (i == count):
             offset = offset + count
             dir = listMoviesInGenre(dir, browseType, category, sort, genre, offset, count)
+
     if browseType == "series":
         j = JSON.ObjectFromURL(URL)
         i = 0
@@ -398,9 +429,11 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                     ), seriesId = movie['id'], browseType=browseType
                 )
             )
+
         if (i == count):
             offset = offset + count
             dir = listMoviesGenre(dir, browseType, category, sort, genre, offset, count)  
+
     return dir
 
 
@@ -411,7 +444,7 @@ def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
     @type dir:
     @param dir:
 
-    @type browseType
+    @type browseType:
     @param browseType:
 
     @type category:
@@ -455,6 +488,7 @@ def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
                 ), seasonNum = season["num"], seriesId=seriesId, browseType=browseType
             )
         )
+
     return dir
 
 
@@ -465,7 +499,7 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
     @type dir:
     @param dir:
 
-    @type browseType
+    @type browseType:
     @param browseType:
 
     @type category:
@@ -521,6 +555,7 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
                 ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
             )
         )
+
     return dir
 
 
@@ -548,12 +583,14 @@ def openMovieGenre(sender, genre, browseType):
     Log.Info('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
     dir = listMoviesInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
+
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty genre')
         return MessageContainer(
             "Sorry",
             "Not available"
         )
+
     return dir
 
 
@@ -581,12 +618,14 @@ def openTvShowsSeasons(sender, seriesId, browseType):
     Log.Info('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
     dir = listTvShowsSeasons(dir, browseType, filter, sortorder, seriesId, 0, 200)
+
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty tv show')
         return MessageContainer(
             "Sorry",
             "Not available"
         )
+
     return dir
 
 
@@ -617,12 +656,14 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Log.Info('Sorting on %s' % sortorder)
     dir = MediaContainer(viewGroup="WallStream")
     dir = listTvShowsEpisodes(dir, browseType, filter, sortorder, seasonNum, seriesId, 0, 200)
+
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty tv show season')
         return MessageContainer(
             "Sorry",
             "Not available"
         )
+
     return dir
 
 
@@ -633,7 +674,7 @@ def searchResults(sender,query=None):
     @type sender:
     @param sender: Contains an ItemInfoRecord object, including information about the previous window state and the item that initiated the function call.
 
-    @type: query:
+    @type query:
     @param query: The specific search query
     
     @rtype: 
@@ -642,12 +683,18 @@ def searchResults(sender,query=None):
 
     if ValidatePrefs() != None:
         return ValidatePrefs()
+
     if Prefs['username'] != None:
-        URL = API_USER + "login/1?username=" + Prefs['username'] + "&password=" + Prefs['password']
-        g = JSON.ObjectFromURL(URL, cacheTime=300)
-        if g['message'] != 'Welcome':
-            return MessageContainer("Failed to log in", "Username or password is incorrect")
-        Dict['sessionId'] = g['data']['session']
+        URL = API_USER + "login/1" 
+        try:
+            g = JSON.ObjectFromURL(URL, values={'username':  Prefs['username'], 'password': Prefs['password']}, cacheTime=300)
+        except Exception:
+            Log.Exception('Failed to log in')
+            return MessageContainer("Failed to log in", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            if g['message'] != 'Welcome':
+                return MessageContainer("Failed to log in", "Username or password is incorrect")
+            Dict['sessionId'] = g['data']['session']
 
     dir = MediaContainer(viewGroup="InfoList")
     Log.Info('Listing Search Results for: %s' % query)
@@ -671,12 +718,14 @@ def searchResults(sender,query=None):
                 ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
             )
         )
+
     if (i == 0):
         Log.Info('Did not find any result for %s' % query)
         return MessageContainer(
             "Search results",
             "Did not find any result for '%s'" % query
         )
+
     return dir
 
 
@@ -702,8 +751,28 @@ def showMoviePopup(sender, videoId, trailerURL, price):
 
     Log.Info('Showing popup menu for: %s' % videoId)
     dir = MediaContainer(viewGroup="InfoList")
+
+    """ 
+        if the movie is AVOD, then always allow access to the user
+        if the movie is not AVOD, verify with the user session if the user has access or not
+    """
     MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
-    if price == "Free":
+    if price != "Free":
+        URL = API_USER + "access/1?session=" + Dict['sessionId'] + "&videoId=" + videoId
+        g = JSON.ObjectFromURL(URL, cacheTime=5)
+        if g['data']['hasAccess'] == True:
+            dir.Append(
+                WebVideoItem(MOVIE_URL,
+                    title= "Play Movie",
+                    subtitle="",
+                    summary="",
+                    thumb="",
+                    duration= "",
+                    userRating="",
+                    art=""
+                )
+            )
+    else:
         dir.Append(
             WebVideoItem(MOVIE_URL,
                 title= "Play Movie",
@@ -715,7 +784,9 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                 art=""
             )
         )
-    # add trailer
+    """
+        if the param trailerURL has a value then allow access to the trailer
+    """
     if trailerURL != None:
         dir.Append(
             VideoItem(trailerURL,
@@ -728,7 +799,11 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                 art=""
             )
         )
-    # add playlists
+    """
+        get the user playlistIds from the session
+        check if the param videoId is available in the playlist or not
+        return correct values if video needs to be added or removed to modifyPlaylist()
+    """
     URL = API_USER + "playlists/1?session=" + Dict['sessionId']
     g = JSON.ObjectFromURL(URL, cacheTime=5)
     for p in g["data"]["playlists"]:
@@ -842,6 +917,7 @@ def modifyPlaylist(sender, videoId, playlistId, modify):
     else:
          Log.Error('Error, Unkown modify tag')
          mc = MessageContainer("Error", "Unknown modify tag")
+
     return mc 
 
 
