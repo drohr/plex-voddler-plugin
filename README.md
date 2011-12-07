@@ -52,11 +52,10 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
 * 1.0
     * Added new look and feel
     * More rewrites
-    * Playback on AVOD movies
+    * Playback on "Play" movies
 * 0.5
-    * Major code writes
     * Support for resume points
-    * Initial support for Localisation
+    * Initial support for more languages then english
     * Initial support for Movies & Series
 * 0.1
     * Initial release
