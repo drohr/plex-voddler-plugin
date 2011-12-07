@@ -479,7 +479,7 @@ def listTvShowsSeasons(dir, seriesId):
     @param dir:
 
     @type seriesId:
-    @param seriesId:
+    @param seriesId: Id of the series object
 
     @rtype:
     @return:
@@ -525,10 +525,10 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
     @param dir:
 
     @type seasonNum:
-    @param seasonNum:
+    @param seasonNum: Season of the series
 
     @type seriesId:
-    @param seriesId:
+    @param seriesId: Id of the series object
 
     @rtype:
     @return:
