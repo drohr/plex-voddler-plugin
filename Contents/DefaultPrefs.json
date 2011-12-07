@@ -36,6 +36,13 @@
     "label": "prefs_AdultFilter",
     "default": "false"
   }, 
+
+  {
+    "id": "screenshots",
+    "type": "bool",
+    "label": "prefs_Screenshots",
+    "default": "false"
+  }, 
  
   {
     "id"     : "locale",
