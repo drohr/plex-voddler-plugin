@@ -4,7 +4,7 @@ import re
 
 ############################################################################################
 
-VERSION        = "1.4"
+VERSION        = "1.5"
 VIDEO_PREFIX   = "/video/voddler"
 NAME           = L('Title')
 ART            = 'art-default.jpg'
@@ -328,10 +328,10 @@ def listPlaylist(sender, playlistType):
     Log.Info('Listing Playlist: %s' % playlistType)
     dir = MediaContainer(viewGroup="WallStream")
 
-    URL = API_USER + "playlists/1?session=" + Dict['sessionId']
+    URL = API_USER + "playlists/1"
     try:
-        # GET (should be POST)
-        g = JSON.ObjectFromURL(URL, cacheTime=5)
+        # POST
+        g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId']}, cacheTime=5)
     except Exception:
         Log.Exception('Failed to list playlist')
         return MessageContainer("Failed to list playlist", "Problem with communicating with Voddler\nPlease try again later")
@@ -345,8 +345,8 @@ def listPlaylist(sender, playlistType):
                     j = JSON.ObjectFromURL(URLinfo, cacheTime=500)
                     movie=j['data']['videos']
                     """
-                        Set movie background art to screenshots or default background
-                        Fetching backgrounds could slow down the browsing experience, Default: False
+                    Set movie background art to screenshots or default background
+                    Fetching backgrounds could slow down the browsing experience, Default: False
                     """
                     if Prefs['screenshots'] == True:
                         back = ""
@@ -405,15 +405,10 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     
     try:
         int(offset)
-    except ValueError:
-        Log.Exception('offset need to be an integer')
-        return "offset need to be an integer"
-
-    try:
         int(count)
     except ValueError:
-        Log.Exception('count need to be an integer')
-        return "count need to be an integer"
+        Log.Exception('param offset and count needs to be an integers')
+        return "param offset and count needs to be an integers"
 
     if Prefs['adultfilter'] == True:
         URL = API_META + "browse/1?type=%s&category=%s&sort=%s&offset=%d&count=%d&genre=%s&explicit=1" % (browseType, category, String.Quote(sort, usePlus=False), offset, count, String.Quote(genre, usePlus=False))
@@ -465,7 +460,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                             thumb = movie["posterUrl"],
                             duration ="", 
                             userRating=float(movie['videoRatingAverage']) / 5 * 10
-                        ), seriesId = movie['id'], browseType=browseType
+                        ), seriesId = movie['id']
                     )
                 )
 
@@ -476,30 +471,15 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     return dir
 
 
-def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count):
+def listTvShowsSeasons(dir, seriesId):
     """
     Creates a MediaContainer with a list of TV Show seasons based on seriesId  
 
     @type dir:
     @param dir:
 
-    @type browseType:
-    @param browseType: List a specific browseType
-
-    @type category:
-    @param category: List a specific browseType category
-
-    @type sort:
-    @param sort:
-
     @type seriesId:
     @param seriesId:
-
-    @type offset:
-    @param offset:
-
-    @type count:
-    @param count:
 
     @rtype:
     @return:
@@ -530,40 +510,25 @@ def listTvShowsSeasons(dir, browseType, category, sort, seriesId, offset, count)
                         summary = "", 
                         thumb = R(ICON),
                         art=R(ART)
-                    ), seasonNum = season["num"], seriesId=seriesId, browseType=browseType
+                    ), seasonNum = season["num"], seriesId=seriesId
                 )
             )
 
     return dir
 
 
-def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, offset, count):
+def listTvShowsEpisodes(dir, seasonNum, seriesId):
     """
     Creates a MediaContainer with a list of TV Show episodes based on seasonNum and seriesId
 
     @type dir:
     @param dir:
 
-    @type browseType:
-    @param browseType:
-
-    @type category:
-    @param category:
-
-    @type sort:
-    @param sort:
-
     @type seasonNum:
     @param seasonNum:
 
     @type seriesId:
     @param seriesId:
-
-    @type offset:
-    @param offset:
-
-    @type count:
-    @param count:
 
     @rtype:
     @return:
@@ -599,6 +564,7 @@ def listTvShowsEpisodes(dir, browseType, category, sort, seasonNum, seriesId, of
                 originalTitle = movie["originalTitle"]
             else:
                 originalTitle = episode["originalTitle"]
+
             dir.Append(
                 Function(
                     PopupDirectoryItem(showMoviePopup,
@@ -652,7 +618,7 @@ def openMovieGenre(sender, genre, browseType):
     return dir
 
 
-def openTvShowsSeasons(sender, seriesId, browseType):
+def openTvShowsSeasons(sender, seriesId):
     """
     Opens a list of Seasons for a specific TV Show
 
@@ -677,7 +643,7 @@ def openTvShowsSeasons(sender, seriesId, browseType):
     Log.Info('Sorting on %s' % sortorder)
 
     dir = MediaContainer(viewGroup="WallStream")
-    dir = listTvShowsSeasons(dir, browseType, filter, sortorder, seriesId, 0, 200)
+    dir = listTvShowsSeasons(dir, seriesId)
 
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty tv show')
@@ -689,7 +655,7 @@ def openTvShowsSeasons(sender, seriesId, browseType):
     return dir
 
 
-def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
+def openTvShowsEpisodes(sender, seasonNum, seriesId):
     """
     Opens a TV Show Season.
 
@@ -717,7 +683,7 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId, browseType):
     Log.Info('Sorting on %s' % sortorder)
 
     dir = MediaContainer(viewGroup="WallStream")
-    dir = listTvShowsEpisodes(dir, browseType, filter, sortorder, seasonNum, seriesId, 0, 200)
+    dir = listTvShowsEpisodes(dir, seasonNum, seriesId)
 
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty tv show season')
@@ -754,7 +720,6 @@ def searchResults(sender,query=None):
     Log.Info('Listing Search Results for: %s' % query)
 
     URL = API_META + "search/1?offset=0&count=20&q=" + String.Quote(query)
-    
     try:
         # GET
         j = JSON.ObjectFromURL(URL)
@@ -765,10 +730,9 @@ def searchResults(sender,query=None):
         i = 0
         for movie in j["data"]["videos"]:
             i = i + 1
-
             """
-                Set movie background art to screenshots or default background
-                Fetching backgrounds could slow down the browsing experience, Default: False
+            Set movie background art to screenshots or default background
+            Fetching backgrounds could slow down the browsing experience, Default: False
             """
             if Prefs['screenshots'] == True:
                 back = ""
@@ -776,7 +740,6 @@ def searchResults(sender,query=None):
                     back = movie["screenshots"][0]["url"]
             else:
                 back = ""
-        
             dir.Append(
                 Function(
                     PopupDirectoryItem(showMoviePopup,
@@ -826,8 +789,8 @@ def showMoviePopup(sender, videoId, trailerURL, price):
     dir = MediaContainer(viewGroup="InfoList")
 
     """ 
-        if the movie is AVOD, then always allow access to the user
-        if the movie is not AVOD, verify with the user session if the user has access or not
+    if the movie is AVOD, then always allow access to the user
+    if the movie is not AVOD, verify with the user session if the user has access or not
     """
     MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
     if price != "Free":
@@ -864,7 +827,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
             )
         )
     """
-        if the param trailerURL has a value then allow access to the trailer
+    if the param trailerURL has a value then allow access to the trailer
     """
     if trailerURL != None:
         dir.Append(
@@ -879,9 +842,9 @@ def showMoviePopup(sender, videoId, trailerURL, price):
             )
         )
     """
-        get the user playlistIds from the session
-        check if the param videoId is available in the playlist or not
-        return correct values if video needs to be added or removed to modifyPlaylist()
+    get the user playlistIds from the session
+    check if the param videoId is available in the playlist or not
+    return correct values if video needs to be added or removed to modifyPlaylist()
     """
     URL = API_USER + "playlists/1"
     try:
@@ -980,47 +943,39 @@ def modifyPlaylist(sender, videoId, playlistId, modify):
     @return: A MessageContainer with return status
     """
 
-    URL = API_USER + "playlists/1?session=" + Dict['sessionId']
-    try:
-        g = JSON.ObjectFromURL(URL, cacheTime=5)
-    except Exception:
-        Log.Exception('Failed to get session')
-        return MessageContainer("Failed to get session", "Problem with communicating with Voddler\nPlease try again later")
-    else:
-        
-        if modify == "add":
-            URL = API_USER + "playlistadd/1"
-            try:
-                g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId'],'playlist': playlistId,'video': videoId}, cacheTime=5)
-            except Exception:
-                    Log.Exception('Error')
-                    return MessageContainer("Failed to add video", "Problem with communicating with Voddler\nPlease try again later")
-            else:
-                if g['message'] != "Added" or g['success'] != True:
-                    Log.Error('Error, Video was not added to your playlist')
-                    mc = MessageContainer("Error", "Video was not added to your playlist")
-                else:
-                    Log.Info('Video: %s was added to playlist: %s' % (videoId, playlistId))
-                    mc = MessageContainer("Success", "Video added to playlist") 
-        
-        elif modify == "del":
-            URL = API_USER + "playlistremove/1"
-            try:
-                g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId'],'playlist': playlistId,'video': videoId}, cacheTime=5)
-            except Exception:
-                Log.Exception('Failed to get session')
-                return MessageContainer("Failed to remove video", "Problem with communicating with Voddler\nPlease try again later")
-            else:
-                if g['message'] != "Removed" or g['success'] != True:
-                    Log.Error('Error, Video was not removed from your playlist')
-                    mc = MessageContainer("Error", "Video was not removed from your playlist")
-                else:
-                    Log.Info('Video: %s was added to playlist: %s' % (videoId, playlistId))
-                    mc = MessageContainer("Success", "Video was removed from your playlist") 
-
+    if modify == "add":
+        URL = API_USER + "playlistadd/1"
+        try:
+            g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId'],'playlist': playlistId,'video': videoId}, cacheTime=5)
+        except Exception:
+                Log.Exception('Error')
+                return MessageContainer("Failed to add video", "Problem with communicating with Voddler\nPlease try again later")
         else:
-            Log.Error('Error, Unkown modify tag')
-            mc = MessageContainer("Error", "Unknown modify tag")
+            if g['message'] != "Added" or g['success'] != True:
+                Log.Error('Error, Video was not added to your playlist')
+                mc = MessageContainer("Error", "Video was not added to your playlist")
+            else:
+                Log.Info('Video: %s was added to playlist: %s' % (videoId, playlistId))
+                mc = MessageContainer("Success", "Video added to playlist") 
+     
+    elif modify == "del":
+        URL = API_USER + "playlistremove/1"
+        try:
+            g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId'],'playlist': playlistId,'video': videoId}, cacheTime=5)
+        except Exception:
+            Log.Exception('Failed to get session')
+            return MessageContainer("Failed to remove video", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            if g['message'] != "Removed" or g['success'] != True:
+               Log.Error('Error, Video was not removed from your playlist')
+               mc = MessageContainer("Error", "Video was not removed from your playlist")
+            else:
+               Log.Info('Video: %s was added to playlist: %s' % (videoId, playlistId))
+               mc = MessageContainer("Success", "Video was removed from your playlist") 
+
+    else:
+        Log.Exception('Error, Unkown modify tag')
+        mc = MessageContainer("Error", "Unknown modify tag")
 
     return mc 
 
