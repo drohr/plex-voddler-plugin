@@ -12,6 +12,7 @@ ICON           = 'icon-default.png'
 
 API_META       = 'https://api.voddler.com/metaapi/'
 API_USER       = 'https://api.voddler.com/userapi/'
+API_PAYMENT    = 'https://api.voddler.com/paymentapi/'
 
 NO_ITEMS       = MessageContainer('No Results','No Results')
 TRY_AGAIN      = MessageContainer('Error','An error has happened. Please try again later.')
@@ -814,6 +815,20 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                         art=""
                     )
                 )
+            else:
+                dir.Append(
+                    Function(
+                        PopupDirectoryItem(listVouchers,
+                            title= "Rent Movie with ticket",
+                            subtitle="",
+                            summary="",
+                            thumb="",
+                            duration= "",
+                            userRating="",
+                            art=""
+                       ), videoId = videoId
+                    )
+                )
     else:
         dir.Append(
             WebVideoItem(MOVIE_URL,
@@ -978,6 +993,120 @@ def modifyPlaylist(sender, videoId, playlistId, modify):
         mc = MessageContainer("Error", "Unknown modify tag")
 
     return mc 
+
+
+def listVouchers(sender, videoId):
+    """
+    Lists available vouchers
+ 
+    @type sender:
+    @param sender:
+
+    @type videoId:
+    @param videoId:
+    """
+
+    Log.Info('Showing voucher menu for: %s' % videoId)
+    dir = MediaContainer(viewGroup="InfoList")
+
+    URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
+    try:
+        g = JSON.ObjectFromURL(URL)
+    except Exception:
+        Log.Exception('Failed to get voucher data')
+        return MessageContainer("Failed to get voucher data", "Problem with communicating with Voddler\nPlease try again later")
+    else:
+        for p in g["data"]["methods"]:
+            Log.Info('output: %s' % p)
+
+
+         """
+
+         WIP
+
+
+         {
+            "message": "",
+             "data":
+            {
+                "methods":
+                [
+                    {
+                        "name": "voucher"
+                    },
+
+                    {
+                        "name": "premium_voucher",
+                         "extra":
+                        {
+                            "vouchers":
+                            [
+                                {
+                                    "status":"created",
+                                     "endDate": null,
+                                     "voucherKey": "84BCA8ED22534AA",
+                                     "campaign":
+                                    {
+                                        "publishers": [],
+                                         "genres": [],
+                                         "endDate": 1350086400,
+                                         "title": "PaymentTest1",
+                                         "deleted": false,
+                                         "type": "gold",
+                                         "promoPage": null,
+                                         "startDate": 1304294400,
+                                         "period": 0,
+                                         "active": true,
+                                         "partOfSubscription": false,
+                                         "markets": [],
+                                         "id": "2801199048651018503",
+                                         "showTicketsLeft": true
+                                    },
+                                    "campaignId": "2801199048651018503",
+                                     "usedDate": null,
+                                     "userId": "2721821230486141888",
+                                     "createdDate": 1304604109,
+                                     "id": "2801199048651018639"
+                                },
+                            ]
+                        }
+                    }
+                ]
+            },
+             "success": true
+        }
+        """
+
+            dir.Append(
+                Function(
+                   PopupDirectoryItem(makePayment,
+                        #title= "Use ticket: %s" % (p["voucherKey"]),
+                        title= "Rent Movie with ticket",
+                        subtitle="",
+                        summary="",
+                        thumb="",
+                         duration= "",
+                         userRating="",
+                         art=""
+                    ), videoId = videoId #, voucherKey = p["voucherKey"] 
+                )
+            )
+
+    return dir
+
+
+def makePayment(videoId, voucherKey):
+    """
+    Rent a movie with a specified voucher
+
+    @type videoId:
+    @param videoId:
+
+    @type voucherKey:
+    @param voucherKey:
+    """
+
+    return MessageContainer("Test", "Work in progresses")
 
 
 def removeHtmlTags(text):
