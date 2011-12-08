@@ -1,6 +1,7 @@
 # -*- encoding: utf-8
 
 import re
+from urlparse import urlparse
 
 ############################################################################################
 
@@ -117,7 +118,6 @@ def Start():
     DirectoryItem.thumb = R(ICON)
     VideoItem.thumb = R(ICON)
     HTTP.CacheTime = CACHE_1HOUR
-    Prefs.SetDialogTitle("Preferences for Voddler")
     #HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
     Log.Info('Voddler Plugin initialized')
 
@@ -267,7 +267,7 @@ def listMovieGenres(sender, genreCategory, browseType):
         return MessageContainer("Failed to list genres", "Problem with communicating with Voddler\nPlease try again later")
     else:
         """
-            dir.Append Search to the output
+        dir.Append Search to the output
         """        
         dir.Append(
             Function(
@@ -281,9 +281,9 @@ def listMovieGenres(sender, genreCategory, browseType):
             )
         )
         """
-            fetch all genre data
-            add or disregard the adult genres
-            dir.Append items with the correct browseType 
+        fetch all genre data
+        add or disregard the adult genres
+        dir.Append items with the correct browseType 
         """
         for genre in g['data']:
             # Verify AdultFilter
@@ -818,8 +818,8 @@ def showMoviePopup(sender, videoId, trailerURL, price):
             else:
                 dir.Append(
                     Function(
-                        PopupDirectoryItem(listVouchers,
-                            title= "Rent Movie with ticket",
+                        PopupDirectoryItem(listPaymentOptions,
+                            title= "Rent Movie",
                             subtitle="",
                             summary="",
                             thumb="",
@@ -843,19 +843,23 @@ def showMoviePopup(sender, videoId, trailerURL, price):
         )
     """
     if the param trailerURL has a value then allow access to the trailer
+    some trailer urls are bad, so just do a simple urlparse check
     """
     if trailerURL != None:
-        dir.Append(
-            VideoItem(trailerURL,
-                title= "Play Trailer",
-                subtitle="",
-                summary="",
-                thumb="",
-                duration= "",
-                userRating="",
-                art=""
+        o = urlparse(trailerURL)
+        if o.scheme == "http":
+            Log.Info('trailerurl: %s' % trailerURL)
+            dir.Append(
+                VideoItem(trailerURL,
+                    title= "Play Trailer",
+                    subtitle="",
+                    summary="",
+                    thumb="",
+                    duration= "",
+                    userRating="",
+                    art=""
+                )
             )
-        )
     """
     get the user playlistIds from the session
     check if the param videoId is available in the playlist or not
@@ -995,6 +999,64 @@ def modifyPlaylist(sender, videoId, playlistId, modify):
     return mc 
 
 
+def listPaymentOptions(sender, videoId):
+    """
+    Lists available payment options
+ 
+    @type sender:
+    @param sender:
+
+    @type videoId:
+    @param videoId:
+    """
+
+    Log.Info('Showing voucher menu for: %s' % videoId)
+    dir = MediaContainer(viewGroup="InfoList")
+
+    URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
+    try:
+        g = JSON.ObjectFromURL(URL)
+    except Exception:
+        Log.Exception('Failed to get payment data')
+        return MessageContainer("Failed to get payment data", "Problem with communicating with Voddler\nPlease try again later")
+    else:
+        """
+        get all paymentmethods available for this purchase
+        """
+        for methods in g["data"]["methods"]:
+            """
+            premium vouchers available?
+            """
+            if methods['name'] == "premium_voucher":
+                dir.Append(
+                    Function(
+                        DirectoryItem(listVouchers,
+                            title= "Rent using a Premium Voucher",
+                            subtitle="Premium Voucher",
+                            summary="",
+                            thumb="",
+                            duration= "",
+                            userRating="",
+                            art=""
+                        ), videoId = videoId
+                    )
+                )
+        
+        dir.Append(
+            Function(
+                InputDirectoryItem(makePayment,
+                    "Rent using a Ticket Code",
+                    "Enter The Ticket Code",
+                    summary="",
+                    thumb="",
+                    art="",
+                ), videoId = videoId, payment = "code"
+            )
+        ) 
+
+    return dir
+
+
 def listVouchers(sender, videoId):
     """
     Lists available vouchers
@@ -1016,97 +1078,57 @@ def listVouchers(sender, videoId):
         Log.Exception('Failed to get voucher data')
         return MessageContainer("Failed to get voucher data", "Problem with communicating with Voddler\nPlease try again later")
     else:
-        for p in g["data"]["methods"]:
-            Log.Info('output: %s' % p)
-
-
-         """
-
-         WIP
-
-
-         {
-            "message": "",
-             "data":
-            {
-                "methods":
-                [
-                    {
-                        "name": "voucher"
-                    },
-
-                    {
-                        "name": "premium_voucher",
-                         "extra":
-                        {
-                            "vouchers":
-                            [
-                                {
-                                    "status":"created",
-                                     "endDate": null,
-                                     "voucherKey": "84BCA8ED22534AA",
-                                     "campaign":
-                                    {
-                                        "publishers": [],
-                                         "genres": [],
-                                         "endDate": 1350086400,
-                                         "title": "PaymentTest1",
-                                         "deleted": false,
-                                         "type": "gold",
-                                         "promoPage": null,
-                                         "startDate": 1304294400,
-                                         "period": 0,
-                                         "active": true,
-                                         "partOfSubscription": false,
-                                         "markets": [],
-                                         "id": "2801199048651018503",
-                                         "showTicketsLeft": true
-                                    },
-                                    "campaignId": "2801199048651018503",
-                                     "usedDate": null,
-                                     "userId": "2721821230486141888",
-                                     "createdDate": 1304604109,
-                                     "id": "2801199048651018639"
-                                },
-                            ]
-                        }
-                    }
-                ]
-            },
-             "success": true
-        }
         """
-
-            dir.Append(
-                Function(
-                   PopupDirectoryItem(makePayment,
-                        #title= "Use ticket: %s" % (p["voucherKey"]),
-                        title= "Rent Movie with ticket",
-                        subtitle="",
-                        summary="",
-                        thumb="",
-                         duration= "",
-                         userRating="",
-                         art=""
-                    ), videoId = videoId #, voucherKey = p["voucherKey"] 
-                )
-            )
-
+        get all paymentmethods available for this purchase
+        """
+        for methods in g["data"]["methods"]:
+            """
+            premium vouchers available?
+            """
+            if methods['name'] == "premium_voucher":
+                for vouchers in methods["extra"]["vouchers"]:
+                    dir.Append(
+                        Function(
+                            DirectoryItem(makePayment,
+                                title= "%s" % (vouchers["campaign"]["title"]),
+                                subtitle="Premium Voucher",
+                                summary="voucherKey: %s" % (vouchers["voucherKey"]),
+                                thumb="",
+                                duration= "",
+                                userRating="",
+                                art=""
+                            ), videoId = videoId, payment = "voucher", voucherKey = vouchers["voucherKey"] 
+                        )
+                    )
     return dir
 
 
-def makePayment(videoId, voucherKey):
+def makePayment(sender, videoId, payment, voucherKey=None, query=None):
     """
-    Rent a movie with a specified voucher
+    Rent a movie with a specific payment option.
 
     @type videoId:
     @param videoId:
 
     @type voucherKey:
     @param voucherKey:
+
+    @type payment:
+    @param payment:
     """
 
-    return MessageContainer("Test", "Work in progresses")
+    Log.Info('payment: %s' % payment)
+
+    if payment == "voucher":
+        Log.Info('videoId: %s voucherKey: %s' % (videoId, voucherKey))
+        mc = MessageContainer("Success", "Payment test!") 
+    elif payment == "code":
+         if query != None:
+             voucherKey = query
+             Log.Info('videoId: %s voucherKey: %s' % (videoId, voucherKey))
+             mc = MessageContainer("Success", "Payment test!!") 
+
+    return mc
 
 
 def removeHtmlTags(text):
