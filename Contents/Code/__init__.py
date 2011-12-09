@@ -1,6 +1,7 @@
 # -*- encoding: utf-8
 
 import re
+import time
 from urlparse import urlparse
 
 ############################################################################################
@@ -282,10 +283,24 @@ def listMovieGenres(sender, genreCategory, browseType):
             )
         )
         """
+        set the browse thumb icons
         fetch all genre data
         add or disregard the adult genres
         dir.Append items with the correct browseType 
         """
+        if browseType == "movie":
+            thumbIcon = R('plex_icon_movies.png')
+            genreSub = "Movies"
+        elif browseType == "documentary":
+            thumbIcon = R('plex_icon_docus.png')
+            genreSub = "Documentaries"
+        elif browseType == "series":
+            thumbIcon = R('plex_icon_series.png')
+            genreSub = "TV Shows"
+        else:
+            thumbIcon = R(ICON) 
+            genreSub = ""
+
         for genre in g['data']:
             # Verify AdultFilter
             if Prefs['adultfilter'] == False:
@@ -295,10 +310,10 @@ def listMovieGenres(sender, genreCategory, browseType):
                 Function(
                     DirectoryItem(openMovieGenre,
                         genre['name'],
-                        subtitle="",
-                        summary="",
-                        thumb=R(ICON),
-                        art=R(ART)
+                        subtitle = genreSub,
+                        summary = "",
+                        thumb = thumbIcon,
+                        art = R(ART)
                     ), genre = genre['value'], browseType=browseType
                 )
             )
@@ -715,7 +730,7 @@ def searchResults(sender,query=None):
     dir = MediaContainer(viewGroup="InfoList")
     Log.Info('Listing Search Results for: %s' % query)
 
-    URL = API_META + "search/1?offset=0&count=20&q=" + String.Quote(query)
+    URL = API_META + "search/1?offset=0&count=" + Prefs['searchresults'] + "&q=" + String.Quote(query)
     try:
         # GET
         j = JSON.ObjectFromURL(URL)
@@ -1092,12 +1107,14 @@ def listVouchers(sender, videoId):
             """
             if methods['name'] == "premium_voucher":
                 for vouchers in methods["extra"]["vouchers"]:
+                    voucherExpire = time.strftime("%D %H:%M", time.localtime(int(vouchers["campaign"]["endDate"])))
+                    Log.Info('date: %s' % voucherExpire)
                     dir.Append(
                         Function(
                             DirectoryItem(makePayment,
                                 title= "%s" % (vouchers["campaign"]["title"]),
                                 subtitle="Premium Voucher",
-                                summary="voucherKey: %s" % (vouchers["voucherKey"]),
+                                summary="voucherKey: %s\nExpires: %s" % (vouchers["voucherKey"], voucherExpire),
                                 thumb="",
                                 duration= "",
                                 userRating="",

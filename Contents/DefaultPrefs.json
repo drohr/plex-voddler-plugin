@@ -43,11 +43,19 @@
     "label": "prefs_Screenshots",
     "default": "false"
   }, 
+
+  {
+    "id": "searchresults",
+    "type": "enum",
+    "label": "prefs_SearchResults",
+    "values": ["10", "20", "40", "100"],
+    "default": "20"
+  },
  
   {
-    "id"     : "locale",
-    "type"	: "enum",
-    "label"	: "Language",
+    "id": "locale",
+    "type": "enum",
+    "label": "Language",
     "values": ["English", "Svenska"],
     "default": "English"
   }

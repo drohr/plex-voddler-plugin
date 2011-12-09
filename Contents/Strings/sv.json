@@ -1,0 +1,21 @@
+{
+    "prefs_Username": "Email",
+    "prefs_Password": "Lösenord",
+    "prefs_catLabel": "Filtrering",
+    "prefs_catFree": "Play",
+    "prefs_catPremium": "Hyr",
+    "prefs_catAll": "Allt",
+    "prefs_sortLabel": "Sortera efter",
+    "prefs_sortRating": "Betyg",
+    "prefs_sortViews": "Visningar",
+    "prefs_sortAlphabetical": "Alfabetisk",
+    "prefs_sortAdded": "Senast inlagda",
+    "prefs_AdultFilter": "Visa Vuxenmatrial",
+    "prefs_Screenshots": "Visa bakrundsbilder på filmer",
+    "prefs_Locale": "Språk",
+    "Title": "Voddler",
+    "MusicTitle": "Voddler Music",
+    "VideoTitle": "Voddler Video",
+    "PhotosTitle": "Voddler Photos",
+    "ApplicationsTitle": "Voddler Applications"
+}

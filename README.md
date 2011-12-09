@@ -39,6 +39,7 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
 
 * 2.0
     * You can now rent movies using premium vouchers or ticket codes
+    * Added Search results option
 * 1.5
     * Enhanced browsing speed
     * Added Movie art option
