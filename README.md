@@ -23,6 +23,7 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
     * Sorting settings (Alphabetical/Added/Rating/Views) 
     * Option to enable Adult content 
     * Option to enable Movie Background Art 
+    * Option to set amount of Search Results
 
 ## Known Issues
 
