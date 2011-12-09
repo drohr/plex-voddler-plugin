@@ -1010,6 +1010,9 @@ def listPaymentOptions(sender, videoId):
 
     @type videoId:
     @param videoId: Id of the video object
+
+    @rtype:
+    @return:
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
@@ -1070,6 +1073,9 @@ def listVouchers(sender, videoId):
 
     @type videoId:
     @param videoId: Id of the video object
+
+    @rtype:
+    @return:
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
@@ -1127,6 +1133,9 @@ def makePayment(sender, videoId, paymentMethod, voucherKey=None, query=None):
 
     @type query:
     @param query: The voucherKey based on input if provided
+
+    @rtype:
+    @return:
     """
 
     Log.Info('paymentMethod used: %s' % paymentMethod)
