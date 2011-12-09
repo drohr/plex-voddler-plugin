@@ -631,9 +631,6 @@ def openTvShowsSeasons(sender, seriesId):
     @type seriesId: int
     @param seriesId: Opens a specific serie
 
-    @type browseType: str
-    @param browseType: Opens a specific browseType
-
     @rtype:
     @return:
     """
@@ -670,9 +667,6 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId):
 
     @type seriesId: 
     @param seriesId: Opens a specific serie
-
-    @type browseType: str
-    @param browseType: Opens a specific browseType
 
     @rtype:
     @return:
