@@ -16,6 +16,8 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
     * Searching for content
     * Browsing Favorites, Playlist and History
     * Thumbnails and movie/episode meta data where available
+* Payments
+    * Payment options of premium vouchers or ticket codes
 * Preferences
     * List settings (Play/Rental/All) 
     * Sorting settings (Alphabetical/Added/Rating/Views) 
@@ -31,17 +33,18 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
 * Sometimes Plex tries to transcode movies even though it doesn't need to. (probably some wierd PMS bug)
 * Seekbar not working, should be fixed with javascript support
 * The search disregardes the adultfilter and doesn't allow adult content (server side mabye?)
+* Transcoded video is not fully supported and has some glitches
 
 ## ChangeLog
 
+* 2.0
+    * You can now rent movies using premium vouchers or ticket codes
 * 1.5
-    * More clean up
-    * POST instead of GET and also reduced the amount of requests
+    * Enhanced browsing speed
     * Added Movie art option
 * 1.4
     * Added add/remove from Favorites or Playlist
 * 1.3
-    * Major code clean up
     * Added Documentation
     * Added AdultFilter
     * Added Trailers
@@ -51,11 +54,10 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
     * Added Series
 * 1.0
     * Added new look and feel
-    * More rewrites
     * Playback on "Play" movies
 * 0.5
     * Support for resume points
-    * Initial support for more languages then english
+    * Initial support for multiple languages
     * Initial support for Movies & Series
 * 0.1
     * Initial release

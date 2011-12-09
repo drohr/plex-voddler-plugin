@@ -5,7 +5,7 @@ from urlparse import urlparse
 
 ############################################################################################
 
-VERSION        = "1.5"
+VERSION        = "2.0"
 VIDEO_PREFIX   = "/video/voddler"
 NAME           = L('Title')
 ART            = 'art-default.jpg'
@@ -1004,10 +1004,11 @@ def listPaymentOptions(sender, videoId):
     Lists available payment options
  
     @type sender:
-    @param sender:
+    @param sender: Contains an ItemInfoRecord object, including information about
+                   the previous window state and the item that initiated the function call.
 
     @type videoId:
-    @param videoId:
+    @param videoId: Id of the video object
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
@@ -1015,6 +1016,7 @@ def listPaymentOptions(sender, videoId):
 
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:
+        # GET (should be POST)
         g = JSON.ObjectFromURL(URL)
     except Exception:
         Log.Exception('Failed to get payment data')
@@ -1050,7 +1052,7 @@ def listPaymentOptions(sender, videoId):
                     summary="",
                     thumb="",
                     art="",
-                ), videoId = videoId, payment = "code"
+                ), videoId = videoId, paymentMethod = "voucher"
             )
         ) 
 
@@ -1062,10 +1064,11 @@ def listVouchers(sender, videoId):
     Lists available vouchers
  
     @type sender:
-    @param sender:
+    @param sender: Contains an ItemInfoRecord object, including information about
+                   the previous window state and the item that initiated the function call.
 
     @type videoId:
-    @param videoId:
+    @param videoId: Id of the video object
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
@@ -1073,6 +1076,7 @@ def listVouchers(sender, videoId):
 
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:
+        # GET (should be POST)
         g = JSON.ObjectFromURL(URL)
     except Exception:
         Log.Exception('Failed to get voucher data')
@@ -1097,36 +1101,62 @@ def listVouchers(sender, videoId):
                                 duration= "",
                                 userRating="",
                                 art=""
-                            ), videoId = videoId, payment = "voucher", voucherKey = vouchers["voucherKey"] 
+                            ), videoId = videoId, paymentMethod = "premium_voucher", voucherKey = vouchers["voucherKey"] 
                         )
                     )
     return dir
 
 
-def makePayment(sender, videoId, payment, voucherKey=None, query=None):
+def makePayment(sender, videoId, paymentMethod, voucherKey=None, query=None):
     """
     Rent a movie with a specific payment option.
 
+    @type sender:
+    @param sender: Contains an ItemInfoRecord object, including information about
+                   the previous window state and the item that initiated the function call.
+
     @type videoId:
-    @param videoId:
+    @param videoId: Id of the video object
+
+    @type paymentMethod:
+    @param paymentMethod: The payment option provided, voucher and premium_vouchers are allowed.
 
     @type voucherKey:
-    @param voucherKey:
+    @param voucherKey: The voucherKey if provided
 
-    @type payment:
-    @param payment:
+    @type query:
+    @param query: The voucherKey based on input if provided
     """
 
-    Log.Info('payment: %s' % payment)
+    Log.Info('paymentMethod used: %s' % paymentMethod)
 
-    if payment == "voucher":
+    if paymentMethod == "premium_voucher" or paymentMethod == "voucher":
+      
+        if paymentMethod == "voucher": 
+            if query != None:
+                voucherKey = query
+            else:
+                Log.Exception('Error, Unkown voucherKey from query')
+        
         Log.Info('videoId: %s voucherKey: %s' % (videoId, voucherKey))
-        mc = MessageContainer("Success", "Payment test!") 
-    elif payment == "code":
-         if query != None:
-             voucherKey = query
-             Log.Info('videoId: %s voucherKey: %s' % (videoId, voucherKey))
-             mc = MessageContainer("Success", "Payment test!!") 
+        URL = API_PAYMENT + "v1/submit/rent/" + videoId
+        try:
+            # POST
+            g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId'],'method': paymentMethod,'voucher': voucherKey}, cacheTime=5)
+        except Exception:
+                Log.Exception('Error')
+                return MessageContainer("Failed to rent video", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            if g['success'] == True:
+                Log.Info('Rented video: %s with voucher: %s' % (videoId, voucherKey))
+                mc = MessageContainer("Success", "Video now available")
+            else:
+                Log.Error('Error, Failed to rent video')
+                mc = MessageContainer("Failed to rent video", "There was an issue with the voucher\nPlease try again later") 
+
+    else:
+        Log.Exception('Error, Unkown payment type')
+        mc = MessageContainer("Error", "Unknown payment type") 
 
     return mc
 
