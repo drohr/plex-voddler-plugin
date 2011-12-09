@@ -14,6 +14,7 @@ ICON           = 'icon-default.png'
 API_META       = 'https://api.voddler.com/metaapi/'
 API_USER       = 'https://api.voddler.com/userapi/'
 API_PAYMENT    = 'https://api.voddler.com/paymentapi/'
+API_PLAY       = 'http://www.voddler.com/playapi/'
 
 NO_ITEMS       = MessageContainer('No Results','No Results')
 TRY_AGAIN      = MessageContainer('Error','An error has happened. Please try again later.')
@@ -793,7 +794,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
     if the movie is AVOD, then always allow access to the user
     if the movie is not AVOD, verify with the user session if the user has access or not
     """
-    MOVIE_URL = "http://www.voddler.com/playapi/embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
+    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
     if price != "Free":
         URL = API_USER + "access/1"
         try:
