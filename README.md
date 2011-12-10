@@ -4,7 +4,7 @@
 * Orignal idea and code by Thomas Rosenqvist <thomas@rosenqvist.org>
 * Images by Sara Smedman <sara@joforik.net>
 
-Very beta state, some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
+Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ## Features
 
@@ -28,10 +28,7 @@ Very beta state, some features work, some dont't. Tested on MacOSX and Windows w
 ## Known Issues
 
 * No playback on rental movies, only browsing. (server side issue)
-* When changing a setting you could sometimes get an error msg.
 * You can't choose to resume a movie or not, if a resume point exists, then it will resume
-* Browsing for movies show movies for all platforms, not just web
-* Sometimes Plex tries to transcode movies even though it doesn't need to. (probably some wierd PMS bug)
 * Seekbar not working, should be fixed with javascript support
 * The search disregardes the adultfilter and doesn't allow adult content (server side mabye?)
 * Transcoded video is not fully supported and has some glitches

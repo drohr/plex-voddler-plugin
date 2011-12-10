@@ -31,7 +31,8 @@ def ValidatePrefs():
 
     u = Prefs['username']
     p = Prefs['password']
-    if( u == None or p == None ):
+
+    if u == None or p == None:
         return MessageContainer(
             "Error",
             "You need to provide a username and password to use this service"
@@ -120,7 +121,7 @@ def Start():
     DirectoryItem.thumb = R(ICON)
     VideoItem.thumb = R(ICON)
     HTTP.CacheTime = CACHE_1HOUR
-    #HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
+    HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
     Log.Info('Voddler Plugin initialized')
 
 
@@ -136,17 +137,7 @@ def ShowTypes():
     dir = MediaContainer(viewGroup="InfoList")
 
     # search
-    dir.Append(
-        Function(
-            InputDirectoryItem(searchResults,
-                "Search",
-                "Search",
-                summary="Search for films, actors, directors, writers and more",
-                thumb=R('plex_icon_search.png'),
-                art=R(ART)
-            )
-        )
-    )
+    addSearch(dir)
     # list movie genres
     dir.Append(
         Function(
@@ -173,7 +164,7 @@ def ShowTypes():
     )
     # list movie genres (documentaries)
     dir.Append(
-         Function(
+        Function(
             DirectoryItem(listMovieGenres,
                 "Documentaries",
                 subtitle="",
@@ -185,7 +176,7 @@ def ShowTypes():
     )
     # list favorites
     dir.Append(
-         Function(
+        Function(
             DirectoryItem(listPlaylist,
                 "Favorites",
                 subtitle="",
@@ -197,7 +188,7 @@ def ShowTypes():
     )
     # list playlist
     dir.Append(
-         Function(
+        Function(
             DirectoryItem(listPlaylist,
                 "Playlist",
                 subtitle="",
@@ -209,7 +200,7 @@ def ShowTypes():
     )
     # list history
     dir.Append(
-         Function(
+        Function(
             DirectoryItem(listPlaylist,
                 "History",
                 subtitle="",
@@ -219,6 +210,7 @@ def ShowTypes():
             ), playlistType = "history"
         )
     )
+
     # preference tab
     dir.Append(
         PrefsItem(
@@ -258,7 +250,7 @@ def listMovieGenres(sender, genreCategory, browseType):
         validateUser()
 
     Log.Info('Listing genres for: %s' % genreCategory)
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
 
     URL = API_META + "genres/1?type=" + genreCategory
     try:
@@ -271,17 +263,7 @@ def listMovieGenres(sender, genreCategory, browseType):
         """
         dir.Append Search to the output
         """        
-        dir.Append(
-            Function(
-                InputDirectoryItem(searchResults,
-                    "Search",
-                    "Search",
-                    summary="Search for films, actors, directors, writers and more",
-                    thumb=R('plex_icon_search.png'),
-                    art=R(ART)
-                )
-            )
-        )
+        addSearch(dir)
         """
         set the browse thumb icons
         fetch all genre data
@@ -343,7 +325,7 @@ def listPlaylist(sender, playlistType):
         validateUser()
 
     Log.Info('Listing Playlist: %s' % playlistType)
-    dir = MediaContainer(viewGroup="WallStream")
+    dir = MediaContainer(viewGroup="WallStream", title2=sender.itemTitle)
 
     URL = API_USER + "playlists/1"
     try:
@@ -477,7 +459,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                             thumb = movie["posterUrl"],
                             duration ="", 
                             userRating=float(movie['videoRatingAverage']) / 5 * 10
-                        ), seriesId = movie['id']
+                        ), seriesId = movie['id'], serieTitle = movie["originalTitle"] 
                     )
                 )
 
@@ -488,7 +470,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     return dir
 
 
-def listTvShowsSeasons(dir, seriesId):
+def listTvShowsSeasons(dir, seriesId, serieTitle):
     """
     Creates a MediaContainer with a list of TV Show seasons based on seriesId  
 
@@ -503,7 +485,6 @@ def listTvShowsSeasons(dir, seriesId):
     """
 
     Log.Info('Listing TV Show seasons for: %s' % seriesId)
-    dir = MediaContainer(viewGroup="InfoList")
 
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     try:
@@ -523,7 +504,7 @@ def listTvShowsSeasons(dir, seriesId):
                 Function(
                     DirectoryItem(openTvShowsEpisodes,
                         "Season %d" % season["num"],
-                        subtitle= "", 
+                        subtitle= serieTitle, 
                         summary = "", 
                         thumb = R(ICON),
                         art=R(ART)
@@ -552,7 +533,6 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
     """
 
     Log.Info('Listing TV Show episodes for %s' % seriesId)
-    dir = MediaContainer(viewGroup="InfoList")
 
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     try:
@@ -588,7 +568,7 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
                         title="%d. %s" % (episode["num"], originalTitle),
                         subtitle= "Price: %s" % (movie["price"]),
                         summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                        thumb = "",
+                        thumb = movie["posterUrl"],
                         duration =  movie["runtime"],
                         userRating=float(movie['videoRatingAverage']) / 5 * 10
                     ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
@@ -622,7 +602,7 @@ def openMovieGenre(sender, genre, browseType):
     sortorder = getSortOptions()
     Log.Info('Sorting on %s' % sortorder)
 
-    dir = MediaContainer(viewGroup="WallStream")
+    dir = MediaContainer(viewGroup="WallStream", title2=sender.itemTitle)
     dir = listMoviesInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
 
     if (len(dir) < 1):
@@ -635,7 +615,7 @@ def openMovieGenre(sender, genre, browseType):
     return dir
 
 
-def openTvShowsSeasons(sender, seriesId):
+def openTvShowsSeasons(sender, seriesId, serieTitle):
     """
     Opens a list of Seasons for a specific TV Show
 
@@ -656,8 +636,8 @@ def openTvShowsSeasons(sender, seriesId):
     sortorder = getSortOptions()
     Log.Info('Sorting on %s' % sortorder)
 
-    dir = MediaContainer(viewGroup="WallStream")
-    dir = listTvShowsSeasons(dir, seriesId)
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
+    dir = listTvShowsSeasons(dir, seriesId, serieTitle)
 
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty tv show')
@@ -693,7 +673,7 @@ def openTvShowsEpisodes(sender, seasonNum, seriesId):
     sortorder = getSortOptions()
     Log.Info('Sorting on %s' % sortorder)
 
-    dir = MediaContainer(viewGroup="WallStream")
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
     dir = listTvShowsEpisodes(dir, seasonNum, seriesId)
 
     if (len(dir) < 1):
@@ -727,7 +707,7 @@ def searchResults(sender,query=None):
     if Prefs['username'] != None:
         validateUser()
 
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="WallStream", title2=sender.itemTitle)
     Log.Info('Listing Search Results for: %s' % query)
 
     URL = API_META + "search/1?offset=0&count=" + Prefs['searchresults'] + "&q=" + String.Quote(query)
@@ -797,7 +777,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
     """
 
     Log.Info('Showing popup menu for: %s' % videoId)
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
 
     """ 
     if the movie is AVOD, then always allow access to the user
@@ -1025,7 +1005,7 @@ def listPaymentOptions(sender, videoId):
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
 
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:
@@ -1088,7 +1068,7 @@ def listVouchers(sender, videoId):
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
-    dir = MediaContainer(viewGroup="InfoList")
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
 
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:
@@ -1202,4 +1182,46 @@ def removeHtmlTags(text):
     p = re.compile(r'(?<=[a-z])[\r\n]+')
     text = p.sub('', text)
     return text
+
+
+def addSearch(dir):
+    """
+    Adds a seearch directory item
+
+    @type dir:
+    @param dir:
+    """
+
+    dir.Append(
+        Function(
+            InputDirectoryItem(searchResults,
+                "Search",
+                "Search for films, actors, directors, writers and more",
+                summary="Search for films, actors, directors, writers and more",
+                thumb=R('plex_icon_search.png'),
+                art=R(ART)
+            )
+        )
+    )
+
+
+# TODO v2.1
+def Thumb(url):
+    """
+    Gets the thumbnail URL, cache the object and redirect a thumbnail icon
+
+    @type url:
+    @param url:
+
+    @rtype:
+    @return:
+    """
+
+    if url:
+        try:
+            data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
+            return DataObject(data, 'image/jpeg')
+        except:
+            pass
+    return Redirect(R(ICON))
 
