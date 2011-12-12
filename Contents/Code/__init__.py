@@ -16,6 +16,7 @@ API_META       = 'https://api.voddler.com/metaapi/'
 API_USER       = 'https://api.voddler.com/userapi/'
 API_PAYMENT    = 'https://api.voddler.com/paymentapi/'
 API_PLAY       = 'http://www.voddler.com/playapi/'
+API_VNET       = 'http://api.voddler.com/vnet/'
 
 NO_ITEMS       = MessageContainer('No Results','No Results')
 TRY_AGAIN      = MessageContainer('Error','An error has happened. Please try again later.')
@@ -79,6 +80,50 @@ def getSortOptions():
     else:
        sortorder = "alphabetical"
     return sortorder 
+
+
+def getSubtitleLang():
+    """
+    Returning subtitle language from preferences
+    If no value is set, return "Off"
+
+    @rtype: str
+    @return: Subtitle choice 
+    """
+
+    if Prefs['subtitlelang'] == "prefs_SubtitleSV":
+       subLanguage = "sv_SE" 
+    elif Prefs['subtitlelang'] == "prefs_SubtitleFI":
+       subLanguage = "fi_FI"
+    elif Prefs['subtitlelang'] == "prefs_SubtitleNK":
+       subLanguage = "no_NO"
+    elif Prefs['subtitlelang'] == "prefs_SubtitleDK":
+       subLanguage = "da_DK"
+    elif Prefs['subtitlelang'] == "prefs_SubtitleNone":
+       subLanguage = "Off"
+    else:
+       subLanguage = "Off"
+    return subLanguage
+
+
+def getSubtitleSize():
+    """
+    Returning subtitle size from preferences
+    If no value is set, return "4"
+
+    @rtype: str
+    @return: Subtitle choice 
+    """
+
+    if Prefs['subtitlesize'] == "prefs_SubtitleBig":
+       subSize = "8" 
+    elif Prefs['subtitlesize'] == "prefs_SubtitleMedium":
+       subSize = "4"
+    elif Prefs['subtitlesize'] == "prefs_SubtitleSmall":
+       subSize = "2"
+    else:
+       subSize = "4"
+    return subSize
 
 
 def validateUser():
@@ -255,7 +300,7 @@ def listMovieGenres(sender, genreCategory, browseType):
     URL = API_META + "genres/1?type=" + genreCategory
     try:
         # GET
-        g = JSON.ObjectFromURL(URL)
+        g = JSON.ObjectFromURL(URL, cacheTime=500)
     except Exception:
         Log.Exception('Failed to list genres')
         return MessageContainer("Failed to list genres", "Problem with communicating with Voddler\nPlease try again later")
@@ -489,7 +534,7 @@ def listTvShowsSeasons(dir, seriesId, serieTitle):
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     try:
         # GET
-        j = JSON.ObjectFromURL(URL)
+        j = JSON.ObjectFromURL(URL, cacheTime=500)
     except Exception:
         Log.Exception('Failed to list seasons')
         return MessageContainer("Failed to list seasons", "Problem with communicating with Voddler\nPlease try again later")
@@ -537,7 +582,7 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     try:
         # GET
-        j = JSON.ObjectFromURL(URL)
+        j = JSON.ObjectFromURL(URL, cacheTime=500)
     except Exception:
         Log.Exception('Failed to list seasons')
         return MessageContainer("Failed to list seasons", "Problem with communicating with Voddler\nPlease try again later")
@@ -713,7 +758,7 @@ def searchResults(sender,query=None):
     URL = API_META + "search/1?offset=0&count=" + Prefs['searchresults'] + "&q=" + String.Quote(query)
     try:
         # GET
-        j = JSON.ObjectFromURL(URL)
+        j = JSON.ObjectFromURL(URL, cacheTime=500)
     except Exception:
         Log.Exception('Failed to search')
         return MessageContainer("Failed to search", "Problem with communicating with Voddler\nPlease try again later")
@@ -794,16 +839,12 @@ def showMoviePopup(sender, videoId, trailerURL, price):
             return MessageContainer("Failed to get session", "Problem with communicating with Voddler\nPlease try again later")
         else:
             if g['data']['hasAccess'] == True:
-                dir.Append(
-                    WebVideoItem(MOVIE_URL,
-                        title= "Play Movie",
-                        subtitle="",
-                        summary="",
-                        thumb="",
-                        duration= "",
-                        userRating="",
-                        art=""
-                    )
+                 dir.Append(
+                     Function(
+                         WebVideoItem(PlayVideo, 
+                             title="Play Movie"
+                         ), videoId = videoId
+                     )
                 )
             else:
                 dir.Append(
@@ -821,16 +862,13 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                 )
     else:
         dir.Append(
-            WebVideoItem(MOVIE_URL,
-                title= "Play Movie",
-                subtitle="",
-                summary="",
-                thumb="",
-                duration= "",
-                userRating="",
-                art=""
+            Function(
+                WebVideoItem(PlayVideo, 
+                    title="Play Movie"
+               ), videoId = videoId
             )
         )
+
     """
     if the param trailerURL has a value then allow access to the trailer
     some trailer urls are bad, so just do a simple urlparse check
@@ -1010,7 +1048,7 @@ def listPaymentOptions(sender, videoId):
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:
         # GET (should be POST)
-        g = JSON.ObjectFromURL(URL)
+        g = JSON.ObjectFromURL(URL, cacheTime=20)
     except Exception:
         Log.Exception('Failed to get payment data')
         return MessageContainer("Failed to get payment data", "Problem with communicating with Voddler\nPlease try again later")
@@ -1073,7 +1111,7 @@ def listVouchers(sender, videoId):
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:
         # GET (should be POST)
-        g = JSON.ObjectFromURL(URL)
+        g = JSON.ObjectFromURL(URL, cacheTime=20)
     except Exception:
         Log.Exception('Failed to get voucher data')
         return MessageContainer("Failed to get voucher data", "Problem with communicating with Voddler\nPlease try again later")
@@ -1203,6 +1241,79 @@ def addSearch(dir):
             )
         )
     )
+
+
+def PlayVideo(sender, videoId):
+    """
+    Creates a callback WebVideoItem and returns it after some checks with subtitles
+
+    @type sender:
+    @param sender:
+
+    @type videoId:
+    @param videoId:
+
+    @rtype:
+    @return:
+    """
+
+    Log.Info('Trying to play video with ID: %s' % videoId)
+
+    """
+    crazy stuff to set subtitle correct,
+    """
+    # GET vnet token
+    URL = API_USER + "vnettoken/1"
+    try:
+        # POST
+        g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId']}, cacheTime=5)
+    except Exception:
+        Log.Exception('Failed to get token')
+        return MessageContainer("Failed to get token", "Problem with communicating with Voddler\nPlease try again later")
+    else:
+        token = g["data"]["token"]
+        Log.Info('vnet token: %s' % token)
+       
+        # GET vnet session with vnet token 
+        URL = API_VNET + "index/login-token/"
+        try:
+            # POST
+            j = XML.ObjectFromURL(URL, values={'token': token, 'version': '2'}, cacheTime=5)
+        except Exception:
+            Log.Exception('Failed to login to vnet')
+            return MessageContainer("Failed to login to vnet", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            vnet_session = j.session_key
+            Log.Info('vnet session: %s' % vnet_session)
+
+            # GET subtitles from vnet settings (useful for debugging)
+            #URL = API_VNET + "settings/?session=" + vnet_session
+            #try:
+            #    # GET
+            #    sub = XML.ElementFromURL(URL, cacheTime=5)
+            #except Exception:
+            #    Log.Exception('Failed to get vnet settings')
+            #    return MessageContainer("Failed to get vnet settings", "Problem with communicating with Voddler\nPlease try again later")
+            #else:
+            #    vnet_subtitle = sub.xpath('/settings/setting[@key="subtitle"]')
+            #    Log.Info('subtitle setting: %s' % vnet_subtitle[0].text)
+
+            # Set subtitle language and size from plex options 
+            subLanguage = getSubtitleLang()
+            subSize = getSubtitleSize()
+            Log.Info('Setting subtitle to: %s %s' % (subLanguage, subSize))
+            URL = API_VNET + "settings/"
+            try:
+                # POST
+                sub = XML.ObjectFromURL(URL, values={'session': vnet_session, 'key.1': 'subtitle', 'value.1': subLanguage, 'key.2': 'subtitleSize', 'value.2': subSize}, cacheTime=5)
+            except Exception:
+                Log.Exception('Failed to set subtitle')
+                return MessageContainer("Failed to set subtitle", "Problem with communicating with Voddler\nPlease try again later")
+            else:
+                pass
+
+    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
+    return Redirect(WebVideoItem(MOVIE_URL))
 
 
 # TODO v2.1

@@ -31,6 +31,22 @@
   },
 
   {
+    "id": "subtitlelang",
+    "type": "enum",
+    "label": "prefs_SubtitleLang",
+    "values": ["prefs_SubtitleSV", "prefs_SubtitleFI", "prefs_SubtitleNK", "prefs_SubtitleDK", "prefs_SubtitleNone"],
+    "default": "prefs_SubtitleSV"
+  },
+
+  {
+    "id": "subtitlesize",
+    "type": "enum",
+    "label": "prefs_SubtitleSize",
+    "values": ["prefs_SubtitleBig", "prefs_SubtitleMedium", "prefs_SubtitleSmall"],
+    "default": "prefs_SubtitleMedium"
+  },
+
+  {
     "id": "adultfilter",
     "type": "bool",
     "label": "prefs_AdultFilter",
@@ -50,13 +66,6 @@
     "label": "prefs_SearchResults",
     "values": ["10", "20", "40", "100"],
     "default": "20"
-  },
- 
-  {
-    "id": "locale",
-    "type": "enum",
-    "label": "Language",
-    "values": ["English", "Svenska"],
-    "default": "English"
   }
+ 
 ]

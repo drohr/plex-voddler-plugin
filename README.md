@@ -24,6 +24,7 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
     * Option to enable Adult content 
     * Option to enable Movie Background Art 
     * Option to set amount of Search Results
+    * Option to set subtitle language and size
 
 ## Known Issues
 
@@ -35,6 +36,8 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ## ChangeLog
 
+* 2.1
+    * You can now choose subtitle language and size in settings
 * 2.0
     * You can now rent movies using premium vouchers or ticket codes
     * Added Search results option
