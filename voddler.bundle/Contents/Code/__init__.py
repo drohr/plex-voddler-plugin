@@ -471,7 +471,6 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     else:
         i = 0
         for movie in j["data"]["videos"]:
-            i = i + 1
             """
             Set movie background art to screenshots or default background
             Fetching backgrounds could slow down the browsing experience, Default: False
@@ -482,14 +481,26 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                     back = movie["screenshots"][0]["url"]
             else:
                 back = ""
-
+          
+            # Checks if your specified subtitle is available or not. 
+            subLang = getSubtitleLang() 
+            if len(movie["subtitles"]) > 0 and subLang != "Off":
+                for subs in movie["subtitles"]:
+                    if subs["language"] == subLang: 
+                        subs_available = "Yes"
+            else:
+                subs_available = "No"            
+            if subLang == "Off":
+                subs_available = "Off"
+ 
             if browseType == "movie" or browseType == "documentary":
+                i = i + 1
                 dir.Append(
                     Function(
                         PopupDirectoryItem(showMoviePopup,
                             removeUnsupportedChars(movie["originalTitle"]),
                             subtitle = "Price: %s" % (movie["price"]),
-                            summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
+                            summary = "Production year: %s\nSubtitles: %s\n\n%s" % (movie["productionYear"], subs_available, removeHtmlTags(movie["localizedData"]["synopsis"])),
                             thumb = movie["posterUrl"],
                             art = back,
                             duration =  movie["runtime"],
@@ -1296,7 +1307,7 @@ def PlayVideo(sender, videoId):
     Log.Info('Trying to play video with ID: %s' % videoId)
 
     """
-    crazy stuff to set subtitle correct,
+    crazy stuff to set subtitle correct
     """
     # GET vnet token
     URL = API_USER + "vnettoken/1"
@@ -1352,7 +1363,7 @@ def PlayVideo(sender, videoId):
     return Redirect(WebVideoItem(MOVIE_URL))
 
 
-# TODO v2.1
+# TODO api v2.1
 def Thumb(url):
     """
     Gets the thumbnail URL, cache the object and redirect a thumbnail icon
