@@ -6,7 +6,7 @@ from urlparse import urlparse
 
 ############################################################################################
 
-VERSION        = "2.0"
+VERSION        = "2.1.1"
 VIDEO_PREFIX   = "/video/voddler"
 NAME           = L('Title')
 ART            = 'art-default.jpg'
@@ -249,7 +249,7 @@ def ShowTypes():
             DirectoryItem(listPlaylist,
                 "History",
                 subtitle="",
-                summary="All the Voddler movies and episodes you have watched",
+                summary="List of the 100 latest Voddler movies and episodes you have watched",
                 thumb=R('plex_icon_history.png'),
                 art=R(ART)
             ), playlistType = "history"
@@ -329,9 +329,9 @@ def listMovieGenres(sender, genreCategory, browseType):
             genreSub = ""
 
         for genre in g['data']:
-            # Verify AdultFilter
+            # disables adult genres if adultfilter is off
             if Prefs['adultfilter'] == False:
-                if genre["value"] == "explicit":
+                if genre["value"] == "explicit" or genre["value"] == "gay":
                     continue
             dir.Append(
                 Function(
@@ -382,7 +382,9 @@ def listPlaylist(sender, playlistType):
     else:
         for p in g["data"]["playlists"]:
             if p["type"] == playlistType:
+                i = 0
                 for v in p["videos"]:
+                    i = i + 1
                     # get all information for specific video
                     URLinfo = API_META + "info/1?videoId=" + v['id']
                     # GET
@@ -412,7 +414,8 @@ def listPlaylist(sender, playlistType):
                             ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
                         )
                     )
-    
+                    if i == 100:
+                        break
     return dir
 
 
@@ -484,7 +487,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                 dir.Append(
                     Function(
                         PopupDirectoryItem(showMoviePopup,
-                            movie["originalTitle"],
+                            removeUnsupportedChars(movie["originalTitle"]),
                             subtitle = "Price: %s" % (movie["price"]),
                             summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
                             thumb = movie["posterUrl"],
@@ -494,11 +497,22 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                         ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
                     )
                 )
+                if i == count:
+                    offset = offset + count
+                    dir.Append(
+                        Function(
+                            DirectoryItem(openMovieGenre,
+                                title = "Next Page",
+                                summary = "Next 100 Movies",
+                                thumb = R(ICON) 
+                            ),  genre = genre, browseType = browseType, offset = offset
+                        )
+                    ) 
             elif browseType == "series":
                 dir.Append(
                     Function(
                         DirectoryItem(openTvShowsSeasons,
-                            title= movie["originalTitle"],
+                            title= removeUnsupportedChars(movie["originalTitle"]),
                             subtitle="",
                             summary = "Episodes: %s\nProduction year: %s" % (movie["numEpisodes"], movie["productionYear"]),
                             thumb = movie["posterUrl"],
@@ -507,10 +521,6 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                         ), seriesId = movie['id'], serieTitle = movie["originalTitle"] 
                     )
                 )
-
-            if (i == count):
-                offset = offset + count
-                dir = listMoviesInGenre(dir, browseType, category, sort, genre, offset, count)
 
     return dir
 
@@ -603,9 +613,9 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
             If so, use the orginalTitle from Info instead
             """
             if episode["originalTitle"] == "" or episode["originalTitle"] == None:
-                originalTitle = movie["originalTitle"]
+                originalTitle = removeUnsupportedChars(movie["originalTitle"])
             else:
-                originalTitle = episode["originalTitle"]
+                originalTitle = removeUnsupportedChars(episode["originalTitle"])
 
             dir.Append(
                 Function(
@@ -623,7 +633,7 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
     return dir
 
 
-def openMovieGenre(sender, genre, browseType):
+def openMovieGenre(sender, genre, browseType, offset=None):
     """
     Opens a Movie or TV Show genre.
 
@@ -647,8 +657,11 @@ def openMovieGenre(sender, genre, browseType):
     sortorder = getSortOptions()
     Log.Info('Sorting on %s' % sortorder)
 
+    if offset == None:
+        offset = 0
+
     dir = MediaContainer(viewGroup="WallStream", title2=sender.itemTitle)
-    dir = listMoviesInGenre(dir, browseType, filter, sortorder, genre, 0, 200)
+    dir = listMoviesInGenre(dir, browseType, filter, sortorder, genre, offset, 100)
 
     if (len(dir) < 1):
         Log.Warn('Trying to access an empty genre')
@@ -779,7 +792,7 @@ def searchResults(sender,query=None):
             dir.Append(
                 Function(
                     PopupDirectoryItem(showMoviePopup,
-                        movie["originalTitle"],
+                        removeUnsupportedChars(movie["originalTitle"]),
                         subtitle= "Price: %s" % (movie["price"]),
                         summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
                         thumb = movie["posterUrl"],
@@ -1202,7 +1215,7 @@ def makePayment(sender, videoId, paymentMethod, voucherKey=None, query=None):
 
 def removeHtmlTags(text):
     """
-    Removes wierd tags from synopsis text.
+    Removes wierd tags and non unicode characters from synopsis text.
 
     @type text: str
     @param text: synopsis from videoId.
@@ -1219,7 +1232,30 @@ def removeHtmlTags(text):
     text = text.replace("nbsp;","")
     p = re.compile(r'(?<=[a-z])[\r\n]+')
     text = p.sub('', text)
+
+    # sometimes other wierd characters make a mess
+    p = re.compile(u'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]')
+    text = p.sub('', text)
+
     return text
+
+
+def removeUnsupportedChars(text):
+    """
+    Remove wierd non unicode characters from text
+
+    @type text: str
+    @param text: 
+
+    @rtype: str
+    @return: Formated text
+    """
+
+    p = re.compile(u'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]')
+    text = p.sub('', text)
+
+    return text
+
 
 
 def addSearch(dir):
