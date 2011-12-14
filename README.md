@@ -1,8 +1,8 @@
 # Plex Plugin for the Voddler movie service 
 
-* Maintained and developed by David Röhr <david@rohr.se>
-* Orignal idea and code by Thomas Rosenqvist <thomas@rosenqvist.org>
-* Images by Sara Smedman <sara@joforik.net>
+* Maintained and developed by David Röhr <david@rohr.se> 
+* Orignal idea and code by Thomas Rosenqvist <thomas@rosenqvist.org> 
+* Images by Sara Smedman <sara@joforik.net> 
 
 Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
