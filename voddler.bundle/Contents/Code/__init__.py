@@ -187,7 +187,7 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listMovieGenres,
-                "Movies",
+                title = Locale.LocalString('menu_Movies'),
                 subtitle="",
                 summary="Current releases, classic blockbusters and world cinema",
                 thumb=R('plex_icon_movies.png'),
@@ -199,7 +199,7 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listMovieGenres,
-                "TV Shows",
+                title = Locale.LocalString('menu_TVShows'),
                 subtitle="",
                 summary="The best series from Hollywood, BBC and many others",
                 thumb=R('plex_icon_series.png'),
@@ -211,7 +211,7 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listMovieGenres,
-                "Documentaries",
+                title = Locale.LocalString('menu_Documentaries'),
                 subtitle="",
                 summary="Learn about history, art, food, geography, science, nature, technology and more",
                 thumb=R('plex_icon_docus.png'),
@@ -223,7 +223,7 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listPlaylist,
-                "Favorites",
+                title = Locale.LocalString('menu_Favorites'),
                 subtitle="",
                 summary="List of all your favorite movies",
                 thumb=R('plex_icon_favorites.png'),
@@ -235,7 +235,7 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listPlaylist,
-                "Playlist",
+                title = Locale.LocalString('menu_Playlist'),
                 subtitle="",
                 summary="List of all movies in your current playlist",
                 thumb=R('plex_icon_playlist.png'),
@@ -247,7 +247,7 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listPlaylist,
-                "History",
+                title = Locale.LocalString('menu_History'),
                 subtitle="",
                 summary="List of the 100 latest Voddler movies and episodes you have watched",
                 thumb=R('plex_icon_history.png'),
@@ -259,7 +259,7 @@ def ShowTypes():
     # preference tab
     dir.Append(
         PrefsItem(
-            title="Preferences",
+            title = Locale.LocalString('menu_Preferences'),
             subtitle="Set up Voddler access details",
             summary="Make sure the VoddlerNet service is enabled.",
             thumb=R('plex_icon_settings.png'),
@@ -388,7 +388,7 @@ def listPlaylist(sender, playlistType):
                     # get all information for specific video
                     URLinfo = API_META + "info/1?videoId=" + v['id']
                     # GET
-                    j = JSON.ObjectFromURL(URLinfo, cacheTime=500)
+                    j = JSON.ObjectFromURL(URLinfo, cacheTime=CACHE_1MONTH)
                     movie=j['data']['videos']
                     """
                     Set movie background art to screenshots or default background
@@ -482,19 +482,20 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
             else:
                 back = ""
           
-            # Checks if your specified subtitle is available or not. 
-            subLang = getSubtitleLang() 
-            if len(movie["subtitles"]) > 0 and subLang != "Off":
-                for subs in movie["subtitles"]:
-                    if subs["language"] == subLang: 
-                        subs_available = "Yes"
-            else:
-                subs_available = "No"            
-            if subLang == "Off":
-                subs_available = "Off"
- 
             if browseType == "movie" or browseType == "documentary":
                 i = i + 1
+                
+                # Checks if your specified subtitle is available or not. 
+                subLang = getSubtitleLang() 
+                if len(movie["subtitles"]) > 0 and subLang != "Off":
+                    for subs in movie["subtitles"]:
+                        if subs["language"] == subLang: 
+                            subs_available = "Yes"
+                else:
+                    subs_available = "No"            
+                if subLang == "Off":
+                    subs_available = "Off"
+
                 dir.Append(
                     Function(
                         PopupDirectoryItem(showMoviePopup,
@@ -555,7 +556,7 @@ def listTvShowsSeasons(dir, seriesId, serieTitle):
     URL = API_META + "seriesinfo/1?seriesId=" + seriesId
     try:
         # GET
-        j = JSON.ObjectFromURL(URL, cacheTime=500)
+        j = JSON.ObjectFromURL(URL, cacheTime=CACHE_1MONTH)
     except Exception:
         Log.Exception('Failed to list seasons')
         return MessageContainer("Failed to list seasons", "Problem with communicating with Voddler\nPlease try again later")
@@ -617,7 +618,7 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
         for episode in episodes.values():
             URLinfo = API_META + "info/1?videoId=" +  episode["id"]
             # GET
-            j = JSON.ObjectFromURL(URLinfo, cacheTime=500)
+            j = JSON.ObjectFromURL(URLinfo, cacheTime=CACHE_1MONTH)
             movie=j['data']['videos']
             """
             Sometimes the orginalTitle from seriesInfo is empty.
@@ -1280,7 +1281,7 @@ def addSearch(dir):
     dir.Append(
         Function(
             InputDirectoryItem(searchResults,
-                "Search",
+                Locale.LocalString('menu_Search'),
                 "Search for films, actors, directors, writers and more",
                 summary="Search for films, actors, directors, writers and more",
                 thumb=R('plex_icon_search.png'),
