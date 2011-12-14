@@ -407,7 +407,7 @@ def listPlaylist(sender, playlistType):
                                 movie["originalTitle"],
                                 subtitle= "Price: %s" % (movie["price"]),
                                 summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                                thumb = movie["posterUrl"],
+                                thumb = Callback(thumb, url = movie['posterUrl']),
                                 duration =  movie["runtime"],
                                 userRating=float(movie['videoRatingAverage']) / 5 * 10,
                                 art=back
@@ -502,7 +502,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                             removeUnsupportedChars(movie["originalTitle"]),
                             subtitle = "Price: %s" % (movie["price"]),
                             summary = "Production year: %s\nSubtitles: %s\n\n%s" % (movie["productionYear"], subs_available, removeHtmlTags(movie["localizedData"]["synopsis"])),
-                            thumb = movie["posterUrl"],
+                            thumb = Callback(thumb, url = movie['posterUrl']),
                             art = back,
                             duration =  movie["runtime"],
                             userRating = float(movie['videoRatingAverage']) / 5 * 10
@@ -801,13 +801,14 @@ def searchResults(sender,query=None):
                     back = movie["screenshots"][0]["url"]
             else:
                 back = ""
+
             dir.Append(
                 Function(
                     PopupDirectoryItem(showMoviePopup,
                         removeUnsupportedChars(movie["originalTitle"]),
                         subtitle= "Price: %s" % (movie["price"]),
                         summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                        thumb = movie["posterUrl"],
+                        thumb = Callback(thumb, url = movie['posterUrl']),
                         art = back,
                         duration =  movie["runtime"],
                         userRating=float(movie['videoRatingAverage']) / 5 * 10
@@ -866,7 +867,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
             if g['data']['hasAccess'] == True:
                  dir.Append(
                      Function(
-                         WebVideoItem(PlayVideo, 
+                         WebVideoItem(playVideo, 
                              title="Play Movie"
                          ), videoId = videoId
                      )
@@ -888,7 +889,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
     else:
         dir.Append(
             Function(
-                WebVideoItem(PlayVideo, 
+                WebVideoItem(playVideo, 
                     title="Play Movie"
                ), videoId = videoId
             )
@@ -1291,7 +1292,7 @@ def addSearch(dir):
     )
 
 
-def PlayVideo(sender, videoId):
+def playVideo(sender, videoId):
     """
     Creates a callback WebVideoItem and returns it after some checks with subtitles
 
@@ -1364,8 +1365,7 @@ def PlayVideo(sender, videoId):
     return Redirect(WebVideoItem(MOVIE_URL))
 
 
-# TODO api v2.1
-def Thumb(url):
+def thumb(url):
     """
     Gets the thumbnail URL, cache the object and redirect a thumbnail icon
 
@@ -1376,11 +1376,11 @@ def Thumb(url):
     @return:
     """
 
-    if url:
-        try:
-            data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-            return DataObject(data, 'image/jpeg')
-        except:
-            pass
+    try:
+        data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
+        return DataObject(data, 'image/jpeg')
+    except:
+        pass
+    
     return Redirect(R(ICON))
 
