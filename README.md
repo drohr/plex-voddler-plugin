@@ -6,6 +6,17 @@
 
 Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
+## Installation
+* For Mac (Plexapp)
+    * Download the voddler.plexapp
+    * Click and install
+* For Mac (Bundle)
+    * Download the voddler.bundle
+    * Move/Extract it to ~Library/Application Support/Plex Media Server/Plug-ins
+* For Windows (Bundle)
+    * Download the voddler.bundle
+    * Move/Extract it to %LOCALAPPDATA%\Plex Media Server\Plug-ins
+
 ## Features
 
 * Playback
@@ -29,7 +40,7 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 ## Known Issues
 
 * No playback on rental movies, only browsing. (server side issue)
-* You can't choose to resume a movie or not, if a resume point exists, then it will resume
+* You can't choose to resume a movie or not, if a resume point exists, then the player will ignore it and start from the beginning
 * Seekbar not working, should be fixed with javascript support
 * The search disregardes the adultfilter and doesn't allow adult content (server side mabye?)
 * Transcoded video is not fully supported and has some glitches
