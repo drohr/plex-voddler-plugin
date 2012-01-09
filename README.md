@@ -1,7 +1,7 @@
 # Plex Plugin for the Voddler movie service 
 
 * Maintained and developed by David Röhr <david@rohr.se> 
-* Orignal idea and code by Thomas Rosenqvist <thomas@rosenqvist.org> 
+* Orignal idea by Thomas Rosenqvist <thomas@rosenqvist.org> 
 * Images by Sara Smedman <sara@joforik.net> 
 
 Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
@@ -20,12 +20,15 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 ## Features
 
 * Playback
-    * Playback on "Play" movies, documentaries and series
+    * Playback on "Play" and Rental movies, documentaries and series
     * Playback of trailers
+    * Working seekbar, with proper play/pause functionality
+    * Subtitles when enabled and available
 * Browsing
     * Browsing all types of movies, documentaries and series
     * Searching for content
     * Browsing Favorites, Playlist and History
+    * Option to Add/Remove movies to playlists
     * Thumbnails and movie/episode meta data where available
 * Payments
     * Payment options of premium vouchers or ticket codes
@@ -39,14 +42,15 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ## Known Issues
 
-* No playback on rental movies, only browsing. (server side issue)
 * You can't choose to resume a movie or not, if a resume point exists, then the player will ignore it and start from the beginning
-* Seekbar not working, should be fixed with javascript support
 * The search disregardes the adultfilter and doesn't allow adult content (server side mabye?)
 * Transcoded video is not fully supported and has some glitches
 
 ## ChangeLog
 
+* 2.2
+    * Rental movies are now playable
+    * Standard seekbar replaced with javascript and is now working
 * 2.1
     * You can now choose subtitle language and size in settings
 * 2.0
