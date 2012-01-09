@@ -6,7 +6,7 @@ from urlparse import urlparse
 
 ############################################################################################
 
-VERSION        = "2.1.1"
+VERSION        = "2.2.0"
 VIDEO_PREFIX   = "/video/voddler"
 NAME           = L('Title')
 ART            = 'art-default.jpg'
@@ -27,17 +27,26 @@ ERROR          = MessageContainer('Network Error','A Network error has occurred'
 def ValidatePrefs():
     """
     Validates prefrences.
+    Checks if username, password and filter options are set
 
     """
 
     u = Prefs['username']
     p = Prefs['password']
+    f = Prefs['filter'] 
 
     if u == None or p == None:
         return MessageContainer(
             "Error",
             "You need to provide a username and password to use this service"
         )
+    elif f == None:
+        return MessageContainer(
+            "Error",
+            "You must have a valid filter setting"
+        )
+    else:
+        pass
 
 
 def getFilterOptions():
@@ -345,6 +354,14 @@ def listMovieGenres(sender, genreCategory, browseType):
                 )
             )
 
+            # REMOVE
+            #MOVIE_URL = API_PLAY + "embedded/1?videoId=" + "2798385723476414602" + "&session=" + Dict["sessionId"] + "&format=html&lab=1&plex=1&wmode=opaque"
+            #dir.Append(
+            #    WebVideoItem(MOVIE_URL,
+            #        title = "Wild Target",
+            #        duration = 94*60000
+            #    )
+            #)
     return dir
 
 
@@ -408,10 +425,10 @@ def listPlaylist(sender, playlistType):
                                 subtitle= "Price: %s" % (movie["price"]),
                                 summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
                                 thumb = Callback(thumb, url = movie['posterUrl']),
-                                duration =  movie["runtime"],
+                                duration =  movie["runtime"]*60000,
                                 userRating=float(movie['videoRatingAverage']) / 5 * 10,
                                 art=back
-                            ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
+                            ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime']*60000
                         )
                     )
                     if i == 100:
@@ -485,7 +502,9 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
             if browseType == "movie" or browseType == "documentary":
                 i = i + 1
                 
-                # Checks if your specified subtitle is available or not. 
+                """
+                Checks if your specified subtitle is available or not
+                """
                 subLang = getSubtitleLang() 
                 if len(movie["subtitles"]) > 0 and subLang != "Off":
                     for subs in movie["subtitles"]:
@@ -504,11 +523,12 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                             summary = "Production year: %s\nSubtitles: %s\n\n%s" % (movie["productionYear"], subs_available, removeHtmlTags(movie["localizedData"]["synopsis"])),
                             thumb = Callback(thumb, url = movie['posterUrl']),
                             art = back,
-                            duration =  movie["runtime"],
+                            duration =  movie["runtime"]*60000,
                             userRating = float(movie['videoRatingAverage']) / 5 * 10
-                        ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
+                        ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime']*60000
                     )
                 )
+                # If more then count, append a next page
                 if i == count:
                     offset = offset + count
                     dir.Append(
@@ -636,9 +656,9 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
                         subtitle= "Price: %s" % (movie["price"]),
                         summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
                         thumb = movie["posterUrl"],
-                        duration =  movie["runtime"],
+                        duration =  movie["runtime"] * 60000,
                         userRating=float(movie['videoRatingAverage']) / 5 * 10
-                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
+                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime'] * 60000
                 )
             )
 
@@ -810,9 +830,9 @@ def searchResults(sender,query=None):
                         summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
                         thumb = Callback(thumb, url = movie['posterUrl']),
                         art = back,
-                        duration =  movie["runtime"],
+                        duration =  movie["runtime"] * 60000,
                         userRating=float(movie['videoRatingAverage']) / 5 * 10
-                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price']
+                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime'] * 60000
                 )
             )
 
@@ -826,7 +846,7 @@ def searchResults(sender,query=None):
     return dir
 
 
-def showMoviePopup(sender, videoId, trailerURL, price):
+def showMoviePopup(sender, videoId, trailerURL, price, thumb, runtime):
     """
     Creates a MediaContainer (popup menu) for a videoItem
 
@@ -842,19 +862,25 @@ def showMoviePopup(sender, videoId, trailerURL, price):
 
     @type price:
     @param price: The price of the movie
+
+    @type thumb:
+    @param thumb: Thumbnail URL
+
+    @type runtime:
+    @param runtime: The runtime of the movie, in milliseconds
     
     @rtype:
     @return: 
     """
 
     Log.Info('Showing popup menu for: %s' % videoId)
+    Log.Info('thumb: %s' % thumb)
     dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
 
     """ 
     if the movie is AVOD, then always allow access to the user
     if the movie is not AVOD, verify with the user session if the user has access or not
     """
-    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
     if price != "Free":
         URL = API_USER + "access/1"
         try:
@@ -868,21 +894,23 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                  dir.Append(
                      Function(
                          WebVideoItem(playVideo, 
-                             title="Play Movie"
-                         ), videoId = videoId
+                             title = "Play Movie",
+                             thumb = thumb,
+                             duration = runtime
+                         ), videoId = videoId, thumb = thumb, runtime = runtime
                      )
                 )
             else:
                 dir.Append(
                     Function(
                         PopupDirectoryItem(listPaymentOptions,
-                            title= "Rent Movie",
-                            subtitle="",
-                            summary="",
-                            thumb="",
-                            duration= "",
-                            userRating="",
-                            art=""
+                            title = "Rent Movie",
+                            subtitle = "",
+                            summary = "",
+                            thumb = thumb,
+                            duration = "",
+                            userRating = "",
+                            art = ""
                        ), videoId = videoId
                     )
                 )
@@ -890,8 +918,10 @@ def showMoviePopup(sender, videoId, trailerURL, price):
         dir.Append(
             Function(
                 WebVideoItem(playVideo, 
-                    title="Play Movie"
-               ), videoId = videoId
+                    title = "Play Movie",
+                    thumb = thumb,
+                    duration = runtime
+               ), videoId = videoId, thumb = thumb, runtime = runtime
             )
         )
 
@@ -905,13 +935,13 @@ def showMoviePopup(sender, videoId, trailerURL, price):
             Log.Info('trailerurl: %s' % trailerURL)
             dir.Append(
                 VideoItem(trailerURL,
-                    title= "Play Trailer",
-                    subtitle="",
-                    summary="",
-                    thumb="",
-                    duration= "",
-                    userRating="",
-                    art=""
+                    title = "Play Trailer",
+                    subtitle = "",
+                    summary = "",
+                    thumb = thumb,
+                    duration = "",
+                    userRating = "",
+                    art = ""
                 )
             )
     """
@@ -941,7 +971,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                                 title="Remove from Favorites", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = "",
+                                thumb = R('plex_icon_favorites.png'),
                                 duration =  "",
                                 userRating= "",
                             ), videoId = videoId, playlistId = playlistId, modify = "del" 
@@ -954,7 +984,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                                 title="Add to Favorites", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = "",
+                                thumb = R('plex_icon_favorites.png'),
                                 duration =  "",
                                 userRating= "",
                             ), videoId = videoId, playlistId = playlistId, modify = "add" 
@@ -973,7 +1003,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                                 title="Remove from Playlist", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = "",
+                                thumb = R('plex_icon_playlist.png'),
                                 duration =  "",
                                 userRating= "",
                             ), videoId = videoId, playlistId = playlistId, modify = "del" 
@@ -986,7 +1016,7 @@ def showMoviePopup(sender, videoId, trailerURL, price):
                                 title="Add to Playlist", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = "",
+                                thumb = R('plex_icon_playlist.png'),
                                 duration =  "",
                                 userRating= "",
                             ), videoId = videoId, playlistId = playlistId, modify = "add" 
@@ -1090,13 +1120,13 @@ def listPaymentOptions(sender, videoId):
                 dir.Append(
                     Function(
                         DirectoryItem(listVouchers,
-                            title= "Rent using a Premium Voucher",
-                            subtitle="Premium Voucher",
-                            summary="",
-                            thumb="",
-                            duration= "",
-                            userRating="",
-                            art=""
+                            title = "Rent using a Premium Voucher",
+                            subtitle = "Premium Voucher",
+                            summary = "",
+                            thumb = R('plex_icon_voucher.png'),
+                            duration = "",
+                            userRating= "",
+                            art = ""
                         ), videoId = videoId
                     )
                 )
@@ -1106,9 +1136,9 @@ def listPaymentOptions(sender, videoId):
                 InputDirectoryItem(makePayment,
                     "Rent using a Ticket Code",
                     "Enter The Ticket Code",
-                    summary="",
-                    thumb="",
-                    art="",
+                    summary = "",
+                    thumb = R('plex_icon_voucher.png'),
+                    art = "",
                 ), videoId = videoId, paymentMethod = "voucher"
             )
         ) 
@@ -1152,17 +1182,17 @@ def listVouchers(sender, videoId):
             if methods['name'] == "premium_voucher":
                 for vouchers in methods["extra"]["vouchers"]:
                     voucherExpire = time.strftime("%D %H:%M", time.localtime(int(vouchers["campaign"]["endDate"])))
-                    Log.Info('date: %s' % voucherExpire)
+                    # Log.Info('date: %s' % voucherExpire)
                     dir.Append(
                         Function(
                             DirectoryItem(makePayment,
-                                title= "%s" % (vouchers["campaign"]["title"]),
-                                subtitle="Premium Voucher",
-                                summary="voucherKey: %s\nExpires: %s" % (vouchers["voucherKey"], voucherExpire),
-                                thumb="",
-                                duration= "",
-                                userRating="",
-                                art=""
+                                title = "%s" % (vouchers["campaign"]["title"]),
+                                subtitle = "Premium Voucher",
+                                summary = "voucherKey: %s\nExpires: %s" % (vouchers["voucherKey"], voucherExpire),
+                                thumb = R('plex_icon_voucher.png'),
+                                duration = "",
+                                userRating = "",
+                                art = ""
                             ), videoId = videoId, paymentMethod = "premium_voucher", voucherKey = vouchers["voucherKey"] 
                         )
                     )
@@ -1292,7 +1322,7 @@ def addSearch(dir):
     )
 
 
-def playVideo(sender, videoId):
+def playVideo(sender, videoId, thumb, runtime):
     """
     Creates a callback WebVideoItem and returns it after some checks with subtitles
 
@@ -1302,6 +1332,12 @@ def playVideo(sender, videoId):
     @type videoId:
     @param videoId:
 
+    @type thumb:
+    @param thumb:
+
+    @type runtime:
+    @param runtime:
+
     @rtype:
     @return:
     """
@@ -1309,7 +1345,7 @@ def playVideo(sender, videoId):
     Log.Info('Trying to play video with ID: %s' % videoId)
 
     """
-    crazy stuff to set subtitle correct
+    crazy stuff to set subtitle correct and verify resume points
     """
     # GET vnet token
     URL = API_USER + "vnettoken/1"
@@ -1335,6 +1371,7 @@ def playVideo(sender, videoId):
             vnet_session = j.session_key
             Log.Info('vnet session: %s' % vnet_session)
 
+
             # GET subtitles from vnet settings (useful for debugging)
             #URL = API_VNET + "settings/?session=" + vnet_session
             #try:
@@ -1346,6 +1383,19 @@ def playVideo(sender, videoId):
             #else:
             #    vnet_subtitle = sub.xpath('/settings/setting[@key="subtitle"]')
             #    Log.Info('subtitle setting: %s' % vnet_subtitle[0].text)
+
+
+            # Check if resume point is available or not
+            URL = API_VNET + "index/pre-movie-request/"
+            try:
+                # POST
+                resume = XML.ObjectFromURL(URL, values={'crid': '0', 'movie': videoId, 'session': vnet_session, 'version': '3'}, cacheTime=5)
+            except Exception:
+                Log.Exception('Failed to get resume point')
+                return MessageContainer("Failed to get resume point", "Problem with communicating with Voddler\nPlease try again later")
+            else:
+                vnet_resume = resume.xpath('/result/resume/@timecode')
+                Log.Info('vnet resume: %s' % vnet_resume[0])
 
             # Set subtitle language and size from plex options 
             subLanguage = getSubtitleLang()
@@ -1362,7 +1412,20 @@ def playVideo(sender, videoId):
                 pass
 
     MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
-    return Redirect(WebVideoItem(MOVIE_URL))
+    
+    if vnet_resume[0] > 10:
+        Log.Info('No resume point found, start movie from the start')
+    else:
+        MOVIE_URL = MOVIE_URL + "resume=1"
+        Log.Info('Resume point found, starting movie from: %s' % vnet_resume)
+
+    return Redirect(
+               WebVideoItem(
+                   MOVIE_URL,
+                   thumb = thumb,
+                   duration = runtime
+               )
+           )
 
 
 def thumb(url):
