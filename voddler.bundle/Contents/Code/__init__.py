@@ -1604,7 +1604,7 @@ def playVideo(sender, videoId, resume):
     # Set correct subtitle
     setSubtitle()
 
-    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&lab=1&plex=1&wmode=opaque"
+    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
 
     # Resume or not?
     if resume == True:
