@@ -6,6 +6,8 @@
 
 Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
+![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
+
 ## Installation
 * For Mac (Plexapp)
     * Download the voddler.plexapp
