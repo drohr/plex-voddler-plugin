@@ -17,10 +17,10 @@
 	<string>1.0</string>
 	
 	<key>PlexClientPlatforms</key>
-	<string>MacOSX</string>
+	<string>MacOSX,Windows</string>
 	<!-- TO ENABLE IOS
 	<key>PlexClientPlatforms</key>
-	<string>MacOSX,iOS</string>-->
+	<string>MacOSX,Windows,iOS</string>-->
 	
 	<!--
 	<key>PlexMediaContainer</key>

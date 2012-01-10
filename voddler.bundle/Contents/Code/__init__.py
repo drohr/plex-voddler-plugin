@@ -155,6 +155,63 @@ def validateUser():
         Dict['sessionId'] = g['data']['session']
 
 
+def getVnetSession():
+    """
+    Returns vnet session as a Dict
+
+    """
+    # GET vnet token
+    URL = API_USER + "vnettoken/1"
+    try:
+        # POST
+        g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId']}, cacheTime=5)
+    except Exception:
+        Log.Exception('Failed to get token')
+        return MessageContainer("Failed to get token", "Problem with communicating with Voddler\nPlease try again later")
+    else:
+        token = g["data"]["token"]
+        Log.Info('vnet token: %s' % token)
+       
+        # GET vnet session with vnet token 
+        URL = API_VNET + "index/login-token/"
+        try:
+            # POST
+            j = XML.ObjectFromURL(URL, values={'token': token, 'version': '2'}, cacheTime=5)
+        except Exception:
+            Log.Exception('Failed to login to vnet')
+            return MessageContainer("Failed to login to vnet", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            vnet_session = j.session_key
+            return vnet_session
+
+
+def setSubtitle():
+    """
+    Set subtitles using vnet
+
+    """
+    try:
+        vnet_session = getVnetSession()
+    except Exception:
+        Log.Exception('Failed to get vnet session')
+        return MessageContainer("Failed to get vnet session", "Problem with communicating with Voddler\nPlease try again later")
+    else:
+ 
+        # Set subtitle language and size from plex options 
+        subLanguage = getSubtitleLang()
+        subSize = getSubtitleSize()
+        Log.Info('Setting subtitle to: %s %s' % (subLanguage, subSize))
+        URL = API_VNET + "settings/"
+        try:
+            # POST
+            sub = XML.ObjectFromURL(URL, values={'session': vnet_session, 'key.1': 'subtitle', 'value.1': subLanguage, 'key.2': 'subtitleSize', 'value.2': subSize}, cacheTime=5)
+        except Exception:
+            Log.Exception('Failed to set subtitle')
+            return MessageContainer("Failed to set subtitle", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+            pass
+
+
 def Start():
     """
     Initialize the plugin.
@@ -353,15 +410,6 @@ def listMovieGenres(sender, genreCategory, browseType):
                     ), genre = genre['value'], browseType=browseType
                 )
             )
-
-            # REMOVE
-            #MOVIE_URL = API_PLAY + "embedded/1?videoId=" + "2798385723476414602" + "&session=" + Dict["sessionId"] + "&format=html&lab=1&plex=1&wmode=opaque"
-            #dir.Append(
-            #    WebVideoItem(MOVIE_URL,
-            #        title = "Wild Target",
-            #        duration = 94*60000
-            #    )
-            #)
     return dir
 
 
@@ -418,17 +466,39 @@ def listPlaylist(sender, playlistType):
                     else:
                         back = ""
 
+                    movieId =  movie['id']
+                    movieTitle =  movie["originalTitle"] 
+                    movieSubtitle = "Price: %s" % (movie["price"])
+                    movieSummary =  "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"]))
+                    movieThumb = movie['posterUrl']
+                    movieArt = back
+           
+                    # Check if the movie has a runtime 
+                    if movie["runtime"] is None:
+                        movieDuration = ""
+                    else:
+                        try:
+                            int(movie["runtime"]) 
+                        except ValueError:
+                            movieDuration = ""
+                        else:
+                            movieDuration = movie["runtime"] * 60000
+          
+                    movieRating = float(movie['videoRatingAverage']) / 5 * 10
+                    movieTrailer = movie['trailer']
+                    moviePrice = movie['price']
+
                     dir.Append(
                         Function(
-                            PopupDirectoryItem(showMoviePopup,
-                                movie["originalTitle"],
-                                subtitle= "Price: %s" % (movie["price"]),
-                                summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                                thumb = Callback(thumb, url = movie['posterUrl']),
-                                duration =  movie["runtime"]*60000,
-                                userRating=float(movie['videoRatingAverage']) / 5 * 10,
-                                art=back
-                            ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime']*60000
+                            DirectoryItem(showMoviePopup,
+                                title = movieTitle,
+                                subtitle = movieSubtitle,
+                                summary = movieSummary,
+                                thumb = Callback(thumb, url = movieThumb),
+                                duration =  movieDuration,
+                                userRating = movieRating,
+                                art = back
+                            ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating  
                         )
                     )
                     if i == 100:
@@ -498,7 +568,27 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                     back = movie["screenshots"][0]["url"]
             else:
                 back = ""
-          
+
+            movieId =  movie['id']
+            movieTitle = removeUnsupportedChars(movie["originalTitle"])
+            movieSubtitle = "Price: %s" % (movie["price"])
+            movieThumb = movie['posterUrl']
+            movieArt = back
+
+            if movie["runtime"] is None:
+                movieDuration = ""
+            else:
+                try:
+                    int(movie["runtime"]) 
+                except ValueError:
+                    movieDuration = ""
+                else:
+                    movieDuration = movie["runtime"] * 60000
+
+            movieRating = float(movie['videoRatingAverage']) / 5 * 10
+            movieTrailer = movie['trailer']
+            moviePrice = movie['price']         
+ 
             if browseType == "movie" or browseType == "documentary":
                 i = i + 1
                 
@@ -515,19 +605,22 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                 if subLang == "Off":
                     subs_available = "Off"
 
+                movieSummary =  "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"]))
+
                 dir.Append(
                     Function(
-                        PopupDirectoryItem(showMoviePopup,
-                            removeUnsupportedChars(movie["originalTitle"]),
-                            subtitle = "Price: %s" % (movie["price"]),
-                            summary = "Production year: %s\nSubtitles: %s\n\n%s" % (movie["productionYear"], subs_available, removeHtmlTags(movie["localizedData"]["synopsis"])),
-                            thumb = Callback(thumb, url = movie['posterUrl']),
-                            art = back,
-                            duration =  movie["runtime"]*60000,
-                            userRating = float(movie['videoRatingAverage']) / 5 * 10
-                        ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime']*60000
+                        DirectoryItem(showMoviePopup,
+                            title = movieTitle,
+                            subtitle= movieSubtitle,
+                            summary = movieSummary,
+                            thumb =  Callback(thumb, url = movieThumb),
+                            art = movieArt,
+                            duration =  movieDuration,
+                            userRating= movieRating
+                        ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating 
                     )
                 )
+
                 # If more then count, append a next page
                 if i == count:
                     offset = offset + count
@@ -544,12 +637,12 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                 dir.Append(
                     Function(
                         DirectoryItem(openTvShowsSeasons,
-                            title= removeUnsupportedChars(movie["originalTitle"]),
-                            subtitle="",
+                            title = movieTitle,
+                            subtitle = "",
                             summary = "Episodes: %s\nProduction year: %s" % (movie["numEpisodes"], movie["productionYear"]),
-                            thumb = movie["posterUrl"],
-                            duration ="", 
-                            userRating=float(movie['videoRatingAverage']) / 5 * 10
+                            thumb = movieThumb,
+                            duration = "", 
+                            userRating = movieRating
                         ), seriesId = movie['id'], serieTitle = movie["originalTitle"] 
                     )
                 )
@@ -649,16 +742,37 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
             else:
                 originalTitle = removeUnsupportedChars(episode["originalTitle"])
 
+            movieId =  movie['id']
+            movieTitle =  originalTitle
+            movieSubtitle = "Price: %s" % (movie["price"])
+            movieSummary =  "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"]))
+            movieThumb = movie['posterUrl']
+           
+            # Check if the movie has a runtime 
+            if movie["runtime"] is None:
+                movieDuration = ""
+            else:
+                try:
+                    int(movie["runtime"]) 
+                except ValueError:
+                    movieDuration = ""
+                else:
+                    movieDuration = movie["runtime"] * 60000
+          
+            movieRating = float(movie['videoRatingAverage']) / 5 * 10
+            movieTrailer = movie['trailer']
+            moviePrice = movie['price']
+
             dir.Append(
                 Function(
-                    PopupDirectoryItem(showMoviePopup,
-                        title="%d. %s" % (episode["num"], originalTitle),
-                        subtitle= "Price: %s" % (movie["price"]),
-                        summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                        thumb = movie["posterUrl"],
-                        duration =  movie["runtime"] * 60000,
-                        userRating=float(movie['videoRatingAverage']) / 5 * 10
-                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime'] * 60000
+                    DirectoryItem(showMoviePopup,
+                        title = "%d. %s" % (episode["num"], originalTitle),
+                        subtitle = movieSubtitle,
+                        summary = movieSummary,
+                        thumb = movieThumb,
+                        duration =  movieDuration,
+                        userRating = movieRating
+                    ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating 
                 )
             )
 
@@ -822,17 +936,39 @@ def searchResults(sender,query=None):
             else:
                 back = ""
 
+            movieId =  movie['id']
+            movieTitle = removeUnsupportedChars(movie["originalTitle"])
+            movieSubtitle = "Price: %s" % (movie["price"])
+            movieSummary =  "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"]))
+            movieThumb = movie['posterUrl']
+            movieArt = back
+           
+            # Check if the movie has a runtime 
+            if movie["runtime"] is None:
+                movieDuration = ""
+            else:
+                try:
+                    int(movie["runtime"]) 
+                except ValueError:
+                    movieDuration = ""
+                else:
+                    movieDuration = movie["runtime"] * 60000
+          
+            movieRating = float(movie['videoRatingAverage']) / 5 * 10
+            movieTrailer = movie['trailer']
+            moviePrice = movie['price']
+
             dir.Append(
                 Function(
-                    PopupDirectoryItem(showMoviePopup,
-                        removeUnsupportedChars(movie["originalTitle"]),
-                        subtitle= "Price: %s" % (movie["price"]),
-                        summary = "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"])),
-                        thumb = Callback(thumb, url = movie['posterUrl']),
-                        art = back,
-                        duration =  movie["runtime"] * 60000,
-                        userRating=float(movie['videoRatingAverage']) / 5 * 10
-                    ), videoId = movie['id'], trailerURL = movie['trailer'], price = movie['price'], thumb = movie['posterUrl'], runtime = movie['runtime'] * 60000
+                    DirectoryItem(showMoviePopup,
+                        title = movieTitle,
+                        subtitle= movieSubtitle,
+                        summary = movieSummary,
+                        thumb =  Callback(thumb, url = movieThumb),
+                        art = movieArt,
+                        duration =  movieDuration,
+                        userRating= movieRating
+                    ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating
                 )
             )
 
@@ -846,7 +982,7 @@ def searchResults(sender,query=None):
     return dir
 
 
-def showMoviePopup(sender, videoId, trailerURL, price, thumb, runtime):
+def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieThumb, movieDuration, movieSummary, movieRating):
     """
     Creates a MediaContainer (popup menu) for a videoItem
 
@@ -881,7 +1017,7 @@ def showMoviePopup(sender, videoId, trailerURL, price, thumb, runtime):
     if the movie is AVOD, then always allow access to the user
     if the movie is not AVOD, verify with the user session if the user has access or not
     """
-    if price != "Free":
+    if moviePrice != "Free":
         URL = API_USER + "access/1"
         try:
             # POST
@@ -891,57 +1027,133 @@ def showMoviePopup(sender, videoId, trailerURL, price, thumb, runtime):
             return MessageContainer("Failed to get session", "Problem with communicating with Voddler\nPlease try again later")
         else:
             if g['data']['hasAccess'] == True:
-                 dir.Append(
-                     Function(
-                         WebVideoItem(playVideo, 
-                             title = "Play Movie",
-                             thumb = thumb,
-                             duration = runtime
-                         ), videoId = videoId, thumb = thumb, runtime = runtime
-                     )
-                )
+
+                try:
+                    vnet_session = getVnetSession()
+                except Exception:
+                    Log.Exception('Failed to get vnet session')
+                    return MessageContainer("Failed to get vnet session", "Problem with communicating with Voddler\nPlease try again later")
+                else:
+         
+                    # Check if resume point is available or not
+                    URL = API_VNET + "index/pre-movie-request/"
+                    try:
+                        # POST
+                        resume = XML.ObjectFromURL(URL, values={'crid': '0', 'movie': videoId, 'session': vnet_session, 'version': '3'}, cacheTime=5)
+                    except Exception:
+                        Log.Exception('Failed to get resume point')
+                        return MessageContainer("Failed to get resume point", "Problem with communicating with Voddler\nPlease try again later")
+                    else:
+                        vnet_resume = resume.xpath('/result/resume/@timecode')
+                        vnet_resume = int(vnet_resume[0])
+                        Log.Info('vnet resume: %s' % vnet_resume)
+
+                if vnet_resume < 10:
+                    dir.Append(
+                        Function(
+                            WebVideoItem(playVideo, 
+                                title = movieTitle,
+                                subtitle = "Play Movie",
+                                summary = movieSummary,
+                                thumb = movieThumb,
+                                userRating = movieRating,
+                                duration = movieDuration
+                            ), videoId = videoId, resume = True
+                        )
+                    )
+                    Log.Info('No resume point found, start movie from the start')
+                else:
+                    Log.Info('Resume point found, starting movie from: %s' % vnet_resume)
+                    dir.Append(
+                        Function(
+                            PopupDirectoryItem(showResumeOptions, 
+                                title = "Play Movie",
+                                subtitle = movieTitle,
+                                summary = movieSummary,
+                                thumb = movieThumb,
+                                userRating = movieRating,
+                                duration = movieDuration
+                            ), videoId = videoId
+                        )
+                    )
             else:
                 dir.Append(
                     Function(
-                        PopupDirectoryItem(listPaymentOptions,
+                        DirectoryItem(listPaymentOptions,
                             title = "Rent Movie",
-                            subtitle = "",
-                            summary = "",
-                            thumb = thumb,
-                            duration = "",
-                            userRating = "",
-                            art = ""
+                            subtitle = movieTitle,
+                            summary = movieSummary,
+                            thumb = movieThumb,
+                            duration = movieDuration,
+                            userRating = movieRating
                        ), videoId = videoId
                     )
                 )
     else:
-        dir.Append(
-            Function(
-                WebVideoItem(playVideo, 
-                    title = "Play Movie",
-                    thumb = thumb,
-                    duration = runtime
-               ), videoId = videoId, thumb = thumb, runtime = runtime
+        try:
+            vnet_session = getVnetSession()
+        except Exception:
+            Log.Exception('Failed to get vnet session')
+            return MessageContainer("Failed to get vnet session", "Problem with communicating with Voddler\nPlease try again later")
+        else:
+         
+            # Check if resume point is available or not
+            URL = API_VNET + "index/pre-movie-request/"
+            try:
+                # POST
+                resume = XML.ObjectFromURL(URL, values={'crid': '0', 'movie': videoId, 'session': vnet_session, 'version': '3'}, cacheTime=3)
+            except Exception:
+                Log.Exception('Failed to get resume point')
+                return MessageContainer("Failed to get resume point", "Problem with communicating with Voddler\nPlease try again later")
+            else:
+                vnet_resume = resume.xpath('/result/resume/@timecode')
+                vnet_resume = int(vnet_resume[0])
+                Log.Info('vnet resume: %s' % vnet_resume)
+
+        if vnet_resume < 10:
+            dir.Append(
+                Function(
+                    WebVideoItem(playVideo, 
+                        title = "Play Movie",
+                        subtitle = movieTitle,
+                        summary = movieSummary,
+                        thumb = movieThumb,
+                        userRating = movieRating,
+                        duration = movieDuration
+                   ), videoId = videoId, resume = True
+                )
             )
-        )
+            Log.Info('No resume point found, start movie from the start')
+        else:
+            Log.Info('Resume point found, starting movie from: %s' % vnet_resume)
+            dir.Append(
+                Function(
+                    PopupDirectoryItem(showResumeOptions, 
+                        title = "Play Movie",
+                        subtitle = movieTitle,
+                        summary = movieSummary,
+                        thumb = movieThumb,
+                        userRating = movieRating,
+                        duration = movieDuration
+                   ), videoId = videoId
+                )
+            )
 
     """
     if the param trailerURL has a value then allow access to the trailer
     some trailer urls are bad, so just do a simple urlparse check
     """
-    if trailerURL != None:
-        o = urlparse(trailerURL)
+    if movieTrailer != None:
+        o = urlparse(movieTrailer)
         if o.scheme == "http":
-            Log.Info('trailerurl: %s' % trailerURL)
+            Log.Info('trailerurl: %s' % movieTrailer)
             dir.Append(
-                VideoItem(trailerURL,
+                VideoItem(movieTrailer,
                     title = "Play Trailer",
-                    subtitle = "",
-                    summary = "",
-                    thumb = thumb,
-                    duration = "",
-                    userRating = "",
-                    art = ""
+                    subtitle = "Play Trailer",
+                    summary = movieSummary,
+                    thumb = R('plex_icon_trailer.png'),
+                    duration = ""
                 )
             )
     """
@@ -1022,6 +1234,54 @@ def showMoviePopup(sender, videoId, trailerURL, price, thumb, runtime):
                             ), videoId = videoId, playlistId = playlistId, modify = "add" 
                         )
                     )
+    return dir
+
+
+def showResumeOptions(sender, videoId):
+    """
+    Lists video resume options
+ 
+    @type sender:
+    @param sender: Contains an ItemInfoRecord object, including information about
+                   the previous window state and the item that initiated the function call.
+
+    @type videoId:
+    @param videoId: Id of the video object
+
+    @rtype:
+    @return:
+    """
+
+    Log.Info('Showing resume menu for: %s' % videoId)
+    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
+
+    dir.Append(
+        Function(
+             WebVideoItem(playVideo,
+                title = "Resume Movie",
+                subtitle = "",
+                summary = "",
+                thumb = "",
+                duration = "",
+                userRating= "",
+                art = ""
+            ), videoId = videoId, resume = True
+        )
+    )
+    dir.Append(
+        Function(
+             WebVideoItem(playVideo,
+                title = "Restart Movie",
+                subtitle = "",
+                summary = "",
+                thumb = "",
+                duration = "",
+                userRating= "",
+                art = ""
+            ), videoId = videoId, resume = False
+        )
+    )
+
     return dir
 
 
@@ -1182,7 +1442,6 @@ def listVouchers(sender, videoId):
             if methods['name'] == "premium_voucher":
                 for vouchers in methods["extra"]["vouchers"]:
                     voucherExpire = time.strftime("%D %H:%M", time.localtime(int(vouchers["campaign"]["endDate"])))
-                    # Log.Info('date: %s' % voucherExpire)
                     dir.Append(
                         Function(
                             DirectoryItem(makePayment,
@@ -1322,9 +1581,10 @@ def addSearch(dir):
     )
 
 
-def playVideo(sender, videoId, thumb, runtime):
+def playVideo(sender, videoId, resume):
     """
-    Creates a callback WebVideoItem and returns it after some checks with subtitles
+    Performs some checks and sets the correct subtitle
+    Returns an URL with a resume point or not
 
     @type sender:
     @param sender:
@@ -1332,11 +1592,8 @@ def playVideo(sender, videoId, thumb, runtime):
     @type videoId:
     @param videoId:
 
-    @type thumb:
-    @param thumb:
-
-    @type runtime:
-    @param runtime:
+    @type resume:
+    @param resume: If the movie should resume or not
 
     @rtype:
     @return:
@@ -1344,89 +1601,22 @@ def playVideo(sender, videoId, thumb, runtime):
 
     Log.Info('Trying to play video with ID: %s' % videoId)
 
-    """
-    crazy stuff to set subtitle correct and verify resume points
-    """
-    # GET vnet token
-    URL = API_USER + "vnettoken/1"
-    try:
-        # POST
-        g = JSON.ObjectFromURL(URL, values={'session': Dict['sessionId']}, cacheTime=5)
-    except Exception:
-        Log.Exception('Failed to get token')
-        return MessageContainer("Failed to get token", "Problem with communicating with Voddler\nPlease try again later")
-    else:
-        token = g["data"]["token"]
-        Log.Info('vnet token: %s' % token)
-       
-        # GET vnet session with vnet token 
-        URL = API_VNET + "index/login-token/"
-        try:
-            # POST
-            j = XML.ObjectFromURL(URL, values={'token': token, 'version': '2'}, cacheTime=5)
-        except Exception:
-            Log.Exception('Failed to login to vnet')
-            return MessageContainer("Failed to login to vnet", "Problem with communicating with Voddler\nPlease try again later")
-        else:
-            vnet_session = j.session_key
-            Log.Info('vnet session: %s' % vnet_session)
+    # Set correct subtitle
+    setSubtitle()
 
+    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&lab=1&plex=1&wmode=opaque"
 
-            # GET subtitles from vnet settings (useful for debugging)
-            #URL = API_VNET + "settings/?session=" + vnet_session
-            #try:
-            #    # GET
-            #    sub = XML.ElementFromURL(URL, cacheTime=5)
-            #except Exception:
-            #    Log.Exception('Failed to get vnet settings')
-            #    return MessageContainer("Failed to get vnet settings", "Problem with communicating with Voddler\nPlease try again later")
-            #else:
-            #    vnet_subtitle = sub.xpath('/settings/setting[@key="subtitle"]')
-            #    Log.Info('subtitle setting: %s' % vnet_subtitle[0].text)
-
-
-            # Check if resume point is available or not
-            URL = API_VNET + "index/pre-movie-request/"
-            try:
-                # POST
-                resume = XML.ObjectFromURL(URL, values={'crid': '0', 'movie': videoId, 'session': vnet_session, 'version': '3'}, cacheTime=5)
-            except Exception:
-                Log.Exception('Failed to get resume point')
-                return MessageContainer("Failed to get resume point", "Problem with communicating with Voddler\nPlease try again later")
-            else:
-                vnet_resume = resume.xpath('/result/resume/@timecode')
-                Log.Info('vnet resume: %s' % vnet_resume[0])
-
-            # Set subtitle language and size from plex options 
-            subLanguage = getSubtitleLang()
-            subSize = getSubtitleSize()
-            Log.Info('Setting subtitle to: %s %s' % (subLanguage, subSize))
-            URL = API_VNET + "settings/"
-            try:
-                # POST
-                sub = XML.ObjectFromURL(URL, values={'session': vnet_session, 'key.1': 'subtitle', 'value.1': subLanguage, 'key.2': 'subtitleSize', 'value.2': subSize}, cacheTime=5)
-            except Exception:
-                Log.Exception('Failed to set subtitle')
-                return MessageContainer("Failed to set subtitle", "Problem with communicating with Voddler\nPlease try again later")
-            else:
-                pass
-
-    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
-    
-    if vnet_resume[0] > 10:
-        Log.Info('No resume point found, start movie from the start')
-    else:
+    # Resume or not?
+    if resume == True:
         MOVIE_URL = MOVIE_URL + "resume=1"
-        Log.Info('Resume point found, starting movie from: %s' % vnet_resume)
-
+    else:
+        MOVIE_URL = MOVIE_URL + "resume=0" 
+ 
     return Redirect(
                WebVideoItem(
-                   MOVIE_URL,
-                   thumb = thumb,
-                   duration = runtime
-               )
+                   MOVIE_URL
+               )  
            )
-
 
 def thumb(url):
     """

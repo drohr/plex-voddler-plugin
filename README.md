@@ -2,13 +2,13 @@
 
 * Maintained and developed by David Röhr <david@rohr.se> 
 * Orignal idea by Thomas Rosenqvist <thomas@rosenqvist.org> 
-* Images by Sara Smedman <sara@joforik.net> 
+* Icons by Sara Smedman <sara@joforik.net> 
 
 Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
 
-## Installation
+## Manual Installation
 * For Mac (Plexapp)
     * Download the voddler.plexapp
     * Click and install
@@ -44,7 +44,8 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ## Known Issues
 
-* You can't choose to resume a movie or not, if a resume point exists, then the player will ignore it and start from the beginning
+* You can't choose to resume a movie or not, if a resume point exists, then the player will ignore it and start from the beginning (TODO)
+* If you seek in the movie, the duration time is not updated correctly
 * The search disregardes the adultfilter and doesn't allow adult content (server side mabye?)
 * Transcoded video is not fully supported and has some glitches
 
