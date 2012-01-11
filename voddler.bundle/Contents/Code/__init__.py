@@ -220,6 +220,7 @@ def Start():
 
     Plugin.AddPrefixHandler(VIDEO_PREFIX, ShowTypes, NAME, ICON, ART)
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
+    Plugin.AddViewGroup("Menu", viewMode = "List", mediaType = "items")
     Plugin.AddViewGroup("WallStream", viewMode="WallStream", mediaType="items")
     MediaContainer.title1 = NAME
     MediaContainer.viewGroup = "InfoList"
@@ -356,7 +357,7 @@ def listMovieGenres(sender, genreCategory, browseType):
         validateUser()
 
     Log.Info('Listing genres for: %s' % genreCategory)
-    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
+    dir = MediaContainer(viewGroup="Menu", title2=sender.itemTitle)
 
     URL = API_META + "genres/1?type=" + genreCategory
     try:
@@ -480,7 +481,7 @@ def listPlaylist(sender, playlistType):
                                 summary = movieSummary,
                                 thumb = Callback(thumb, url = movieThumb),
                                 duration =  movieDuration,
-                                userRating = movieRating,
+                                userRating = movieRating
                             ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating  
                         )
                     )
@@ -586,7 +587,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                             summary = movieSummary,
                             thumb =  Callback(thumb, url = movieThumb),
                             duration =  movieDuration,
-                            userRating= movieRating
+                            userRating = movieRating
                         ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating 
                     )
                 )
@@ -611,8 +612,7 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
                             subtitle = "",
                             summary = "Episodes: %s\nProduction year: %s" % (movie["numEpisodes"], movie["productionYear"]),
                             thumb = movieThumb,
-                            duration = "", 
-                            userRating = movieRating
+                            duration = ""
                         ), seriesId = movie['id'], serieTitle = movie["originalTitle"] 
                     )
                 )
@@ -810,7 +810,7 @@ def openTvShowsSeasons(sender, seriesId, serieTitle):
     sortorder = getSortOptions()
     Log.Info('Sorting on %s' % sortorder)
 
-    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
+    dir = MediaContainer(viewGroup="Menu", title2=sender.itemTitle)
     dir = listTvShowsSeasons(dir, seriesId, serieTitle)
 
     if (len(dir) < 1):
@@ -924,7 +924,7 @@ def searchResults(sender,query=None):
                         summary = movieSummary,
                         thumb =  Callback(thumb, url = movieThumb),
                         duration =  movieDuration,
-                        userRating= movieRating
+                        userRating = movieRating
                     ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating
                 )
             )
@@ -990,8 +990,8 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                             subtitle = movieTitle,
                             summary = movieSummary,
                             thumb = movieThumb,
-                            userRating = movieRating,
-                            duration = movieDuration
+                            duration = movieDuration,
+                            userRating = movieRating
                         ), videoId = videoId
                     )
                 )
@@ -1003,8 +1003,7 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                             subtitle = movieTitle,
                             summary = movieSummary,
                             thumb = movieThumb,
-                            duration = movieDuration,
-                            userRating = movieRating
+                            duration = movieDuration
                        ), videoId = videoId
                     )
                 )
@@ -1016,8 +1015,8 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                     subtitle = movieTitle,
                     summary = movieSummary,
                     thumb = movieThumb,
-                    userRating = movieRating,
-                    duration = movieDuration
+                    duration = movieDuration,
+                    userRating = movieRating
                 ), videoId = videoId
             )
         )
@@ -1186,7 +1185,7 @@ def listPaymentOptions(sender, videoId):
     """
 
     Log.Info('Showing voucher menu for: %s' % videoId)
-    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
+    dir = MediaContainer(viewGroup="Menu", title2=sender.itemTitle)
 
     URL = API_PAYMENT + "v1/options/rent/" + videoId + "/?session=" + Dict['sessionId']
     try:

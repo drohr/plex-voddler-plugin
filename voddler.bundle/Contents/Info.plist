@@ -22,31 +22,21 @@
 	<key>PlexClientPlatforms</key>
 	<string>MacOSX,Windows,iOS</string>-->
 	
-	<!--
 	<key>PlexMediaContainer</key>
 	<array>
-	### PICK THE APPROPRIATE ONES
 		<string>Flash</string>
-		<string>MP4</string>
-		<string>FLV</string>
 	</array>
-	<key>PlexVideoCodec</key>
-	<array>
-		<string>H.264</string>
-		<string>H.263</string>
-	</array>
-	<key>PlexAudioCodec</key>
-	<array>
-		<string>AAC</string>
-		<string>MP3</string>
-	</array>
-	-->
-	
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
-	
+	<key>PlexClientCapabilities</key>
+	<dict>
+		<key>protocols</key>
+		<array>
+			<string>webkit</string>
+		</array>
+	</dict>
 	<key>PlexPluginConsoleLogging</key>
 	<string>1</string>
 	<key>PlexPluginDevMode</key>
