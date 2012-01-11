@@ -54,13 +54,6 @@
   }, 
 
   {
-    "id": "screenshots",
-    "type": "bool",
-    "label": "prefs_Screenshots",
-    "default": "false"
-  }, 
-
-  {
     "id": "searchresults",
     "type": "enum",
     "label": "prefs_SearchResults",

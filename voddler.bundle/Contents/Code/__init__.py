@@ -220,11 +220,6 @@ def Start():
 
     Plugin.AddPrefixHandler(VIDEO_PREFIX, ShowTypes, NAME, ICON, ART)
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
-    Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
-    Plugin.AddViewGroup("MediaPreview", viewMode="MediaPreview", mediaType="items")
-    Plugin.AddViewGroup("Showcase", viewMode="Showcase", mediaType="items")
-    Plugin.AddViewGroup("Coverflow", viewMode="Coverflow", mediaType="items")
-    Plugin.AddViewGroup("PanelStream", viewMode="PanelStream", mediaType="items")
     Plugin.AddViewGroup("WallStream", viewMode="WallStream", mediaType="items")
     MediaContainer.title1 = NAME
     MediaContainer.viewGroup = "InfoList"
@@ -455,23 +450,12 @@ def listPlaylist(sender, playlistType):
                     # GET
                     j = JSON.ObjectFromURL(URLinfo, cacheTime=CACHE_1MONTH)
                     movie=j['data']['videos']
-                    """
-                    Set movie background art to screenshots or default background
-                    Fetching backgrounds could slow down the browsing experience, Default: False
-                    """
-                    if Prefs['screenshots'] == True:
-                        back = ""
-                        if len(movie["screenshots"]) > 0:
-                            back = movie["screenshots"][0]["url"]
-                    else:
-                        back = ""
 
                     movieId =  movie['id']
                     movieTitle =  movie["originalTitle"] 
                     movieSubtitle = "Price: %s" % (movie["price"])
                     movieSummary =  "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"]))
                     movieThumb = movie['posterUrl']
-                    movieArt = back
            
                     # Check if the movie has a runtime 
                     if movie["runtime"] is None:
@@ -490,14 +474,13 @@ def listPlaylist(sender, playlistType):
 
                     dir.Append(
                         Function(
-                            DirectoryItem(showMoviePopup,
+                            PopupDirectoryItem(showMoviePopup,
                                 title = movieTitle,
                                 subtitle = movieSubtitle,
                                 summary = movieSummary,
                                 thumb = Callback(thumb, url = movieThumb),
                                 duration =  movieDuration,
                                 userRating = movieRating,
-                                art = back
                             ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating  
                         )
                     )
@@ -558,22 +541,10 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
     else:
         i = 0
         for movie in j["data"]["videos"]:
-            """
-            Set movie background art to screenshots or default background
-            Fetching backgrounds could slow down the browsing experience, Default: False
-            """
-            if Prefs['screenshots'] == True:
-                back = ""
-                if len(movie["screenshots"]) > 0:
-                    back = movie["screenshots"][0]["url"]
-            else:
-                back = ""
-
             movieId =  movie['id']
             movieTitle = removeUnsupportedChars(movie["originalTitle"])
             movieSubtitle = "Price: %s" % (movie["price"])
             movieThumb = movie['posterUrl']
-            movieArt = back
 
             if movie["runtime"] is None:
                 movieDuration = ""
@@ -609,12 +580,11 @@ def listMoviesInGenre(dir, browseType, category, sort, genre, offset, count):
 
                 dir.Append(
                     Function(
-                        DirectoryItem(showMoviePopup,
+                        PopupDirectoryItem(showMoviePopup,
                             title = movieTitle,
                             subtitle= movieSubtitle,
                             summary = movieSummary,
                             thumb =  Callback(thumb, url = movieThumb),
-                            art = movieArt,
                             duration =  movieDuration,
                             userRating= movieRating
                         ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating 
@@ -765,7 +735,7 @@ def listTvShowsEpisodes(dir, seasonNum, seriesId):
 
             dir.Append(
                 Function(
-                    DirectoryItem(showMoviePopup,
+                    PopupDirectoryItem(showMoviePopup,
                         title = "%d. %s" % (episode["num"], originalTitle),
                         subtitle = movieSubtitle,
                         summary = movieSummary,
@@ -925,23 +895,11 @@ def searchResults(sender,query=None):
         i = 0
         for movie in j["data"]["videos"]:
             i = i + 1
-            """
-            Set movie background art to screenshots or default background
-            Fetching backgrounds could slow down the browsing experience, Default: False
-            """
-            if Prefs['screenshots'] == True:
-                back = ""
-                if len(movie["screenshots"]) > 0:
-                    back = movie["screenshots"][0]["url"]
-            else:
-                back = ""
-
             movieId =  movie['id']
             movieTitle = removeUnsupportedChars(movie["originalTitle"])
             movieSubtitle = "Price: %s" % (movie["price"])
             movieSummary =  "Production year: %s\n\n%s" % (movie["productionYear"], removeHtmlTags(movie["localizedData"]["synopsis"]))
             movieThumb = movie['posterUrl']
-            movieArt = back
            
             # Check if the movie has a runtime 
             if movie["runtime"] is None:
@@ -960,12 +918,11 @@ def searchResults(sender,query=None):
 
             dir.Append(
                 Function(
-                    DirectoryItem(showMoviePopup,
+                    PopupDirectoryItem(showMoviePopup,
                         title = movieTitle,
                         subtitle= movieSubtitle,
                         summary = movieSummary,
                         thumb =  Callback(thumb, url = movieThumb),
-                        art = movieArt,
                         duration =  movieDuration,
                         userRating= movieRating
                     ), videoId = movieId, movieTitle = movieTitle, movieTrailer = movieTrailer, moviePrice = moviePrice, movieThumb = movieThumb, movieDuration = movieDuration, movieSummary = movieSummary, movieRating = movieRating
@@ -1010,7 +967,6 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
     """
 
     Log.Info('Showing popup menu for: %s' % videoId)
-    Log.Info('thumb: %s' % thumb)
     dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
 
     """ 
@@ -1027,55 +983,18 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
             return MessageContainer("Failed to get session", "Problem with communicating with Voddler\nPlease try again later")
         else:
             if g['data']['hasAccess'] == True:
-
-                try:
-                    vnet_session = getVnetSession()
-                except Exception:
-                    Log.Exception('Failed to get vnet session')
-                    return MessageContainer("Failed to get vnet session", "Problem with communicating with Voddler\nPlease try again later")
-                else:
-         
-                    # Check if resume point is available or not
-                    URL = API_VNET + "index/pre-movie-request/"
-                    try:
-                        # POST
-                        resume = XML.ObjectFromURL(URL, values={'crid': '0', 'movie': videoId, 'session': vnet_session, 'version': '3'}, cacheTime=5)
-                    except Exception:
-                        Log.Exception('Failed to get resume point')
-                        return MessageContainer("Failed to get resume point", "Problem with communicating with Voddler\nPlease try again later")
-                    else:
-                        vnet_resume = resume.xpath('/result/resume/@timecode')
-                        vnet_resume = int(vnet_resume[0])
-                        Log.Info('vnet resume: %s' % vnet_resume)
-
-                if vnet_resume < 10:
-                    dir.Append(
-                        Function(
-                            WebVideoItem(playVideo, 
-                                title = movieTitle,
-                                subtitle = "Play Movie",
-                                summary = movieSummary,
-                                thumb = movieThumb,
-                                userRating = movieRating,
-                                duration = movieDuration
-                            ), videoId = videoId, resume = True
-                        )
+                dir.Append(
+                    Function(
+                        WebVideoItem(playVideo, 
+                            title = "Play Movie",
+                            subtitle = movieTitle,
+                            summary = movieSummary,
+                            thumb = movieThumb,
+                            userRating = movieRating,
+                            duration = movieDuration
+                        ), videoId = videoId
                     )
-                    Log.Info('No resume point found, start movie from the start')
-                else:
-                    Log.Info('Resume point found, starting movie from: %s' % vnet_resume)
-                    dir.Append(
-                        Function(
-                            PopupDirectoryItem(showResumeOptions, 
-                                title = "Play Movie",
-                                subtitle = movieTitle,
-                                summary = movieSummary,
-                                thumb = movieThumb,
-                                userRating = movieRating,
-                                duration = movieDuration
-                            ), videoId = videoId
-                        )
-                    )
+                )
             else:
                 dir.Append(
                     Function(
@@ -1090,54 +1009,18 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                     )
                 )
     else:
-        try:
-            vnet_session = getVnetSession()
-        except Exception:
-            Log.Exception('Failed to get vnet session')
-            return MessageContainer("Failed to get vnet session", "Problem with communicating with Voddler\nPlease try again later")
-        else:
-         
-            # Check if resume point is available or not
-            URL = API_VNET + "index/pre-movie-request/"
-            try:
-                # POST
-                resume = XML.ObjectFromURL(URL, values={'crid': '0', 'movie': videoId, 'session': vnet_session, 'version': '3'}, cacheTime=3)
-            except Exception:
-                Log.Exception('Failed to get resume point')
-                return MessageContainer("Failed to get resume point", "Problem with communicating with Voddler\nPlease try again later")
-            else:
-                vnet_resume = resume.xpath('/result/resume/@timecode')
-                vnet_resume = int(vnet_resume[0])
-                Log.Info('vnet resume: %s' % vnet_resume)
-
-        if vnet_resume < 10:
-            dir.Append(
-                Function(
-                    WebVideoItem(playVideo, 
-                        title = "Play Movie",
-                        subtitle = movieTitle,
-                        summary = movieSummary,
-                        thumb = movieThumb,
-                        userRating = movieRating,
-                        duration = movieDuration
-                   ), videoId = videoId, resume = True
-                )
+        dir.Append(
+            Function(
+                WebVideoItem(playVideo, 
+                    title = "Play Movie",
+                    subtitle = movieTitle,
+                    summary = movieSummary,
+                    thumb = movieThumb,
+                    userRating = movieRating,
+                    duration = movieDuration
+                ), videoId = videoId
             )
-            Log.Info('No resume point found, start movie from the start')
-        else:
-            Log.Info('Resume point found, starting movie from: %s' % vnet_resume)
-            dir.Append(
-                Function(
-                    PopupDirectoryItem(showResumeOptions, 
-                        title = "Play Movie",
-                        subtitle = movieTitle,
-                        summary = movieSummary,
-                        thumb = movieThumb,
-                        userRating = movieRating,
-                        duration = movieDuration
-                   ), videoId = videoId
-                )
-            )
+        )
 
     """
     if the param trailerURL has a value then allow access to the trailer
@@ -1183,9 +1066,7 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                                 title="Remove from Favorites", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = R('plex_icon_favorites.png'),
-                                duration =  "",
-                                userRating= "",
+                                thumb = R('plex_icon_favorites.png')
                             ), videoId = videoId, playlistId = playlistId, modify = "del" 
                         )
                     )
@@ -1196,9 +1077,7 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                                 title="Add to Favorites", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = R('plex_icon_favorites.png'),
-                                duration =  "",
-                                userRating= "",
+                                thumb = R('plex_icon_favorites.png')
                             ), videoId = videoId, playlistId = playlistId, modify = "add" 
                         )
                     )
@@ -1215,9 +1094,7 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                                 title="Remove from Playlist", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = R('plex_icon_playlist.png'),
-                                duration =  "",
-                                userRating= "",
+                                thumb = R('plex_icon_playlist.png')
                             ), videoId = videoId, playlistId = playlistId, modify = "del" 
                         )
                     )
@@ -1228,60 +1105,10 @@ def showMoviePopup(sender, videoId, movieTitle, movieTrailer, moviePrice, movieT
                                 title="Add to Playlist", 
                                 subtitle= "",
                                 summary = "",
-                                thumb = R('plex_icon_playlist.png'),
-                                duration =  "",
-                                userRating= "",
+                                thumb = R('plex_icon_playlist.png')
                             ), videoId = videoId, playlistId = playlistId, modify = "add" 
                         )
                     )
-    return dir
-
-
-def showResumeOptions(sender, videoId):
-    """
-    Lists video resume options
- 
-    @type sender:
-    @param sender: Contains an ItemInfoRecord object, including information about
-                   the previous window state and the item that initiated the function call.
-
-    @type videoId:
-    @param videoId: Id of the video object
-
-    @rtype:
-    @return:
-    """
-
-    Log.Info('Showing resume menu for: %s' % videoId)
-    dir = MediaContainer(viewGroup="InfoList", title2=sender.itemTitle)
-
-    dir.Append(
-        Function(
-             WebVideoItem(playVideo,
-                title = "Resume Movie",
-                subtitle = "",
-                summary = "",
-                thumb = "",
-                duration = "",
-                userRating= "",
-                art = ""
-            ), videoId = videoId, resume = True
-        )
-    )
-    dir.Append(
-        Function(
-             WebVideoItem(playVideo,
-                title = "Restart Movie",
-                subtitle = "",
-                summary = "",
-                thumb = "",
-                duration = "",
-                userRating= "",
-                art = ""
-            ), videoId = videoId, resume = False
-        )
-    )
-
     return dir
 
 
@@ -1383,10 +1210,7 @@ def listPaymentOptions(sender, videoId):
                             title = "Rent using a Premium Voucher",
                             subtitle = "Premium Voucher",
                             summary = "",
-                            thumb = R('plex_icon_voucher.png'),
-                            duration = "",
-                            userRating= "",
-                            art = ""
+                            thumb = R('plex_icon_voucher.png')
                         ), videoId = videoId
                     )
                 )
@@ -1397,8 +1221,7 @@ def listPaymentOptions(sender, videoId):
                     "Rent using a Ticket Code",
                     "Enter The Ticket Code",
                     summary = "",
-                    thumb = R('plex_icon_voucher.png'),
-                    art = "",
+                    thumb = R('plex_icon_voucher.png')
                 ), videoId = videoId, paymentMethod = "voucher"
             )
         ) 
@@ -1448,10 +1271,7 @@ def listVouchers(sender, videoId):
                                 title = "%s" % (vouchers["campaign"]["title"]),
                                 subtitle = "Premium Voucher",
                                 summary = "voucherKey: %s\nExpires: %s" % (vouchers["voucherKey"], voucherExpire),
-                                thumb = R('plex_icon_voucher.png'),
-                                duration = "",
-                                userRating = "",
-                                art = ""
+                                thumb = R('plex_icon_voucher.png')
                             ), videoId = videoId, paymentMethod = "premium_voucher", voucherKey = vouchers["voucherKey"] 
                         )
                     )
@@ -1568,32 +1388,24 @@ def addSearch(dir):
     @param dir:
     """
 
-    dir.Append(
-        Function(
-            InputDirectoryItem(searchResults,
-                Locale.LocalString('menu_Search'),
-                "Search for films, actors, directors, writers and more",
-                summary="Search for films, actors, directors, writers and more",
-                thumb=R('plex_icon_search.png'),
-                art=R(ART)
-            )
-        )
-    )
+    dir.Append(Function(InputDirectoryItem(searchResults,
+        Locale.LocalString('menu_Search'),
+        "Search for films, actors, directors, writers and more",
+        summary="Search for films, actors, directors, writers and more",
+        thumb=R('plex_icon_search.png'),
+        art=R(ART)
+     )))
 
 
-def playVideo(sender, videoId, resume):
+def playVideo(sender, videoId):
     """
     Performs some checks and sets the correct subtitle
-    Returns an URL with a resume point or not
 
     @type sender:
     @param sender:
 
     @type videoId:
     @param videoId:
-
-    @type resume:
-    @param resume: If the movie should resume or not
 
     @rtype:
     @return:
@@ -1606,17 +1418,8 @@ def playVideo(sender, videoId, resume):
 
     MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
 
-    # Resume or not?
-    if resume == True:
-        MOVIE_URL = MOVIE_URL + "resume=1"
-    else:
-        MOVIE_URL = MOVIE_URL + "resume=0" 
- 
-    return Redirect(
-               WebVideoItem(
-                   MOVIE_URL
-               )  
-           )
+    return Redirect(WebVideoItem(MOVIE_URL))
+
 
 def thumb(url):
     """

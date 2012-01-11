@@ -38,7 +38,6 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
     * List settings (Play/Rental/All) 
     * Sorting settings (Alphabetical/Added/Rating/Views) 
     * Option to enable Adult content 
-    * Option to enable Movie Background Art 
     * Option to set amount of Search Results
     * Option to set subtitle language and size
 
@@ -59,23 +58,16 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 * 2.0
     * You can now rent movies using premium vouchers or ticket codes
     * Added Search results option
-* 1.5
     * Enhanced browsing speed
-    * Added Movie art option
-* 1.4
     * Added add/remove from Favorites or Playlist
-* 1.3
     * Added Documentation
     * Added AdultFilter
     * Added Trailers
-* 1.2
     * Added Playlist, Favorites and History
-* 1.1
     * Added Series
 * 1.0
     * Added new look and feel
     * Playback on "Play" movies
-* 0.5
     * Support for resume points
     * Initial support for multiple languages
     * Initial support for Movies & Series
