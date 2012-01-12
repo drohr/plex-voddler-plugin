@@ -10,6 +10,7 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 
 ## Manual Installation
 Downloads: <https://github.com/drohr/plex-voddler-plugin/downloads>
+
 Make sure you have the latest Plex Media Server installed.
 
 * For Mac (Plexapp)
