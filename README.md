@@ -9,15 +9,18 @@ Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
 ![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
 
 ## Manual Installation
+Downloads: <https://github.com/drohr/plex-voddler-plugin/downloads>
+
 * For Mac (Plexapp)
-    * Download the voddler.plexapp
-    * Click and install
+    * Download the voddler.plexapp zip
+    * Extract and Click for install
 * For Mac (Bundle)
-    * Download the voddler.bundle
+    * Download the voddler.bundle zip 
     * Move/Extract it to ~Library/Application Support/Plex Media Server/Plug-ins
 * For Windows (Bundle)
-    * Download the voddler.bundle
-    * Move/Extract it to %LOCALAPPDATA%\Plex Media Server\Plug-ins
+    * Download the voddler.bundle zip 
+    * Right-click the Plex Media Server icon in the Windows System Tray and choose Open Plug-ins Folder
+    * Copy the extracted voddler.bundle to that folder 
 
 ## Features
 
