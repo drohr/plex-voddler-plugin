@@ -249,11 +249,11 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listMovieGenres,
-                title = Locale.LocalString('menu_Movies'),
-                subtitle="",
-                summary="Current releases, classic blockbusters and world cinema",
-                thumb=R('plex_icon_movies.png'),
-                art=R(ART)
+                title = "Movies",
+                subtitle = "",
+                summary = "Current releases, classic blockbusters and world cinema",
+                thumb = R('plex_icon_movies.png'),
+                art = R(ART)
             ), genreCategory = "movies", browseType = "movie"
         )
     )
@@ -261,11 +261,11 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listMovieGenres,
-                title = Locale.LocalString('menu_TVShows'),
-                subtitle="",
-                summary="The best series from Hollywood, BBC and many others",
-                thumb=R('plex_icon_series.png'),
-                art=R(ART)
+                title = "TV Shows",
+                subtitle = "",
+                summary = "The best series from Hollywood, BBC and many others",
+                thumb = R('plex_icon_series.png'),
+                art = R(ART)
             ), genreCategory = "episodes", browseType = "series"
         )
     )
@@ -273,11 +273,11 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listMovieGenres,
-                title = Locale.LocalString('menu_Documentaries'),
-                subtitle="",
-                summary="Learn about history, art, food, geography, science, nature, technology and more",
-                thumb=R('plex_icon_docus.png'),
-                art=R(ART)
+                title = "Documentaries",
+                subtitle = "",
+                summary = "Learn about history, art, food, geography, science, nature, technology and more",
+                thumb = R('plex_icon_docus.png'),
+                art = R(ART)
             ), genreCategory = "documentary", browseType = "documentary"
         )
     )
@@ -285,11 +285,11 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listPlaylist,
-                title = Locale.LocalString('menu_Favorites'),
-                subtitle="",
-                summary="List of all your favorite movies",
-                thumb=R('plex_icon_favorites.png'),
-                art=R(ART)
+                title = "Favorites",
+                subtitle = "",
+                summary = "List of all your favorite movies",
+                thumb = R('plex_icon_favorites.png'),
+                art = R(ART)
             ), playlistType = "favorites"
         )
     )
@@ -297,11 +297,11 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listPlaylist,
-                title = Locale.LocalString('menu_Playlist'),
-                subtitle="",
-                summary="List of all movies in your current playlist",
-                thumb=R('plex_icon_playlist.png'),
-                art=R(ART)
+                title = "Playlist",
+                subtitle = "",
+                summary = "List of all movies in your current playlist",
+                thumb = R('plex_icon_playlist.png'),
+                art = R(ART)
             ), playlistType = "playlist"
         )
     )
@@ -309,11 +309,11 @@ def ShowTypes():
     dir.Append(
         Function(
             DirectoryItem(listPlaylist,
-                title = Locale.LocalString('menu_History'),
-                subtitle="",
-                summary="List of the 100 latest Voddler movies and episodes you have watched",
-                thumb=R('plex_icon_history.png'),
-                art=R(ART)
+                title = "History",
+                subtitle = "",
+                summary = "List of the 100 latest Voddler movies and episodes you have watched",
+                thumb = R('plex_icon_history.png'),
+                art = R(ART)
             ), playlistType = "history"
         )
     )
@@ -321,11 +321,11 @@ def ShowTypes():
     # preference tab
     dir.Append(
         PrefsItem(
-            title = Locale.LocalString('menu_Preferences'),
-            subtitle="Set up Voddler access details",
-            summary="Make sure the VoddlerNet service is enabled.",
-            thumb=R('plex_icon_settings.png'),
-            art=R(ART)
+            title = "Preferences",
+            subtitle = "Set up Voddler access details",
+            summary = "Make sure the VoddlerNet service is enabled.",
+            thumb = R('plex_icon_settings.png'),
+            art = R(ART)
         )
     )
 
@@ -1217,8 +1217,8 @@ def listPaymentOptions(sender, videoId):
         dir.Append(
             Function(
                 InputDirectoryItem(makePayment,
-                    "Rent using a Ticket Code",
-                    "Enter The Ticket Code",
+                    title = "Rent using a Ticket Code",
+                    prompt = "Enter The Ticket Code",
                     summary = "",
                     thumb = R('plex_icon_voucher.png')
                 ), videoId = videoId, paymentMethod = "voucher"
@@ -1388,11 +1388,11 @@ def addSearch(dir):
     """
 
     dir.Append(Function(InputDirectoryItem(searchResults,
-        Locale.LocalString('menu_Search'),
-        "Search for films, actors, directors, writers and more",
-        summary="Search for films, actors, directors, writers and more",
-        thumb=R('plex_icon_search.png'),
-        art=R(ART)
+        title = "Search",
+        prompt = "Search for films, actors, directors, writers and more",
+        summary = "Search for films, actors, directors, writers and more",
+        thumb = R('plex_icon_search.png'),
+        art = R(ART)
      )))
 
 
