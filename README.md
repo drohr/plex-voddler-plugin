@@ -4,12 +4,11 @@ Voddler is an online film service, that offer movies, TV-series and documentarie
 
 The plugin has been tested and developed on MacOSX (PMS 0.9.5.x) but should work well on Windows Vista or Windows 7.
 
-![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
-
-## Credits
-
-* Orignal idea by Thomas Rosenqvist 
+* Maintained and developed by David Röhr <david@rohr.se>
+* Orignal idea by Thomas Rosenqvist
 * Icons by Sara Smedman
+
+![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
 
 ## Manual Installation
 Downloads: <https://github.com/drohr/plex-voddler-plugin/downloads>
