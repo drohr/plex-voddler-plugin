@@ -1,12 +1,13 @@
 # Plex Plugin for the Voddler movie service 
 
-* Maintained and developed by David Röhr <david@rohr.se> 
-* Orignal idea by Thomas Rosenqvist <thomas@rosenqvist.org> 
-* Icons by Sara Smedman <sara@joforik.net> 
-
-Some features work, some dont't. Tested on MacOSX and Windows with PMS 0.9.5.x
-
 ![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
+
+Tested on MacOSX and Windows with PMS 0.9.5.x
+
+## Credits
+
+* Orignal idea by Thomas Rosenqvist 
+* Icons by Sara Smedman
 
 ## Manual Installation
 Downloads: <https://github.com/drohr/plex-voddler-plugin/downloads>
