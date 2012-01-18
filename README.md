@@ -2,7 +2,8 @@
 
 Voddler is an online film service, that offer movies, TV-series and documentaries for you to watch online, legally, streamed directly to your computer screen or TV-set. <http://www.voddler.com>
 
-The Plugin has been tested and developed on MacOSX (PMS 0.9.5.x) but should work well on Windows Vista or Windows 7.
+The plugin has been tested and developed on MacOSX (PMS 0.9.5.x) but should work well on Windows Vista or Windows 7.
+
 
 ![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
 
