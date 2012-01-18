@@ -53,9 +53,9 @@ Make sure you have the latest Plex Media Server with the proper flash plugin ins
 ## Known Issues
 
 * You can't choose to resume a movie or not, if a resume point exists, then the player will ignore it and start from the beginning (TODO)
-* If you seek in the movie, the duration time is not updated correctly
-* The search disregardes the adultfilter and doesn't allow adult content (server side mabye?)
-* Transcoded video is not fully supported and has some glitches
+* If you seek in the movie, the duration time is not updated correctly (PMS)
+* The search disregardes the adultfilter and doesn't allow adult content 
+* Transcoded video is not fully supported and has some glitches (PMS)
 
 ## ChangeLog
 
