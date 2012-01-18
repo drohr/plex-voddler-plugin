@@ -1,8 +1,10 @@
 # Plex Plugin for the Voddler movie service 
 
-![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
+Voddler is an online film service, that offer movies, TV-series and documentaries for you to watch online, legally, streamed directly to your computer screen or TV-set. <http://www.voddler.com>
 
-Tested on MacOSX and Windows with PMS 0.9.5.x
+The Plugin has been tested and developed on MacOSX (PMS 0.9.5.x) but should work well on Windows Vista or Windows 7.
+
+![plex-voddler-plugin](https://github.com/drohr/plex-voddler-plugin/raw/master/browse.jpg)
 
 ## Credits
 
@@ -12,7 +14,7 @@ Tested on MacOSX and Windows with PMS 0.9.5.x
 ## Manual Installation
 Downloads: <https://github.com/drohr/plex-voddler-plugin/downloads>
 
-Make sure you have the latest Plex Media Server installed.
+Make sure you have the latest Plex Media Server with the proper flash plugin installed. Most movies also require you to use the VoddlerNet application.
 
 * For Mac (Plexapp)
     * Download the voddler.plexapp zip
