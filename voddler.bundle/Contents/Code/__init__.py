@@ -108,6 +108,8 @@ def getSubtitleLang():
        subLanguage = "no_NO"
     elif Prefs['subtitlelang'] == "prefs_SubtitleDK":
        subLanguage = "da_DK"
+    elif Prefs['subtitlelang'] == "prefs_SubtitleES":
+       subLanguage = "es_ES"
     elif Prefs['subtitlelang'] == "prefs_SubtitleNone":
        subLanguage = "Off"
     else:

@@ -34,7 +34,7 @@
     "id": "subtitlelang",
     "type": "enum",
     "label": "prefs_SubtitleLang",
-    "values": ["prefs_SubtitleSV", "prefs_SubtitleFI", "prefs_SubtitleNK", "prefs_SubtitleDK", "prefs_SubtitleNone"],
+    "values": ["prefs_SubtitleSV", "prefs_SubtitleFI", "prefs_SubtitleNK", "prefs_SubtitleDK", "prefs_SubtitleES", "prefs_SubtitleNone"],
     "default": "prefs_SubtitleSV"
   },
 
