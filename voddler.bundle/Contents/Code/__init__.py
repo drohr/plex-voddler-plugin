@@ -1417,7 +1417,11 @@ def playVideo(sender, videoId):
     # Set correct subtitle
     setSubtitle()
 
-    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque"
+    # 480p
+    # MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaque&width=853&height=480"
+
+    # 720p
+    MOVIE_URL = API_PLAY + "embedded/1?videoId=" + videoId + "&session=" + Dict["sessionId"] + "&format=html&plex=1&wmode=opaquew&quality=autolow&width=1280&height=720"
 
     return Redirect(WebVideoItem(MOVIE_URL))
 
