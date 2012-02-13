@@ -57,12 +57,12 @@ Make sure you have the latest Plex Media Server with the proper flash plugin ins
 
 ## ChangeLog
 
-* 2.2
+* 2.0
+    * Improved quality on playback
     * Rental movies are now playable
     * Standard seekbar replaced with javascript and is now working
-* 2.1
     * You can now choose subtitle language and size in settings
-* 2.0
+* 1.5
     * You can now rent movies using premium vouchers or ticket codes
     * Added Search results option
     * Enhanced browsing speed

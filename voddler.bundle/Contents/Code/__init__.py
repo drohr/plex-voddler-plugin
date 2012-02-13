@@ -6,7 +6,7 @@ from urlparse import urlparse
 
 ############################################################################################
 
-VERSION        = "2.2.0"
+VERSION        = "2.0.1"
 VIDEO_PREFIX   = "/video/voddler"
 NAME           = L('Title')
 ART            = 'art-default.jpg'
